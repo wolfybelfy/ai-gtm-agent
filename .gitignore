@@ -18,6 +18,7 @@
 *.py[cod]
 .pytest_cache/
 .cache/
+trigger-system/tests/.tmp/
 
 # GTM operational and identifying data
 audiences/

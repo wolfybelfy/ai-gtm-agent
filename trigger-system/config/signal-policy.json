@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "strike_min_independent_signals": 2,
+  "low_fit_outlier_below": 45,
+  "signals": {
+    "new_marketing_leader": {"tier": "A", "weight": 30, "min_age_days": 30, "max_age_days": 90},
+    "hiring_surge": {"tier": "A", "weight": 28, "min_age_days": 0, "max_age_days": 30, "minimum_open_roles": 3},
+    "stale_reposted_role": {"tier": "A", "weight": 24, "min_age_days": 0, "max_age_days": 30, "minimum_days_open": 60, "qualification": "minimum_days_open_or_verified_repost"},
+    "acquisition_integration": {"tier": "A", "weight": 26, "min_age_days": 0, "max_age_days": 274, "required_transaction_status": "closed"},
+    "jd_vendor_language": {"tier": "A", "weight": 24, "min_age_days": 0, "max_age_days": 60},
+    "past_champion_landed": {"tier": "A", "weight": 25, "min_age_days": 30, "max_age_days": 120},
+    "closed_lost_cluster": {"tier": "A", "weight": 20, "min_age_days": 0, "max_age_days": 90},
+    "conference": {"tier": "B", "weight": 14, "min_age_days": -98, "max_age_days": -56},
+    "product_launch": {"tier": "B", "weight": 15, "min_age_days": -42, "max_age_days": 84},
+    "regional_expansion": {"tier": "B", "weight": 14, "min_age_days": 0, "max_age_days": 183},
+    "analyst_placement": {"tier": "B", "weight": 10, "min_age_days": 0, "max_age_days": 56},
+    "rebrand": {"tier": "B", "weight": 16, "min_age_days": 0, "max_age_days": 183},
+    "funding": {"tier": "B", "weight": 6, "min_age_days": 0, "max_age_days": 90},
+    "capability_gap": {"tier": "D", "weight": 0, "min_age_days": 0, "max_age_days": 30, "evidence_only": true},
+    "martech_replatform": {"tier": "experimental", "weight": 0, "min_age_days": 0, "max_age_days": 90, "evidence_only": true},
+    "review_platform_intent": {"tier": "experimental", "weight": 0, "min_age_days": 0, "max_age_days": 30, "evidence_only": true},
+    "executive_rebuild_content": {"tier": "experimental", "weight": 0, "min_age_days": 0, "max_age_days": 30, "evidence_only": true}
+  }
+}

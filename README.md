@@ -1,28 +1,36 @@
 # AI GTM Agent
 
-An independent foundation for building and testing AI-assisted go-to-market workflows.
+AI GTM Agent is an isolated open-market STRIKE validation system. It evaluates normalized public evidence for companies outside the existing TAL, validates evidence-backed play candidates, prepares ZoomInfo request handoffs only after STRIKE, and saves reviewable Outlook drafts without sending them.
 
-## LinkedIn Conversation Signal Strategy
+The original `ICP Converstion Intelligence` project is a separate system and must not be edited from this repository.
 
-Open `index.html` in a modern browser. It is a self-contained HTML presentation and needs no build step.
+## V1 flow
 
-The presentation follows one vertical story:
+`normalized public evidence -> TAL suppression -> fit + heat -> STRIKE -> AI play candidate -> deterministic validation -> ZoomInfo request handoff -> verified-contact import -> unsent Outlook drafts + Monday digest`
 
-1. Find commercially relevant LinkedIn discussions.
-2. Read the post and comments for an observed problem.
-3. Match the person to a named account and relevant role.
-4. Check CRM ownership and history before enrichment.
-5. Use Clay to build a reviewed SDR-ready account record.
-6. Work the account through a coordinated email, call, and LinkedIn cadence.
-7. Qualify positive responses, hand genuine opportunities to the account director, and recycle the rest.
-8. Feed outcomes back into discovery and scoring.
+The runtime connections are deliberately narrow:
 
-The three supplied LinkedIn screenshots are shown uncropped as evidence. A clearly labelled fictional account demonstrates the complete workflow without presenting invented results as fact. The pilot section measures operational yield and sales outcomes instead of promising an unsupported conversion rate.
+- Public web and SEC/EDGAR research imported as normalized evidence.
+- A post-STRIKE ZoomInfo request file and a separate verified-contact import.
+- Local Outlook for unsent drafts.
 
-## Files
+Live web collectors and a live ZoomInfo connector are not enabled in v1. HubSpot, Teams, OneDrive/Graph, Clay, automatic sending, reply monitoring, sequences, and one-pagers are not runtime components. The distilled call and meeting corpus remains local play-writing context, not a runtime integration.
 
-- `index.html`: full strategy presentation
-- `styles.css`: linear editorial layout and responsive rules
-- `script.js`: reading progress and query-copy interaction
-- `assets/source-examples/`: supplied conversation screenshots
-- `tests/presentation-smoke.ps1`: structure, language, and interaction checks
+V1 account scope is the United States, United Kingdom, Canada, and UAE. Contact drafts remain limited to verified US-based people with company-domain work email and verified role relevance.
+
+## First safe run
+
+```powershell
+cd "C:\Users\admin\Documents\AI GTM Agent\trigger-system"
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\ai-gtm.ps1 -DryRun -Fixture
+```
+
+This uses synthetic inputs, consumes no ZoomInfo credits, and creates no Outlook items. Review the generated `staging\runtime\runs\<date>\digest.md` and `drafts.json`.
+
+Run all shipping checks:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-v1.ps1
+```
+
+See [setup](trigger-system/runbooks/setup.md) and [Monday operation](trigger-system/runbooks/monday-run.md).
