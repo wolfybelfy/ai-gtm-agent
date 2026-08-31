@@ -4,9 +4,7 @@
 
 - Windows PowerShell 5.1 or newer.
 - Python 3 with the standard library. No package install is required.
-- ZoomInfo environment variables only when running live enrichment:
-  - `ZOOMINFO_CLIENT_ID`
-  - `ZOOMINFO_CLIENT_SECRET`
+- `AI_GTM_OPERATOR_EMAIL` only when saving the internal Monday digest as an Outlook draft.
 - Desktop Outlook signed into the user's mailbox only when saving real drafts.
 
 No other credential is allowed in the runtime environment. Never copy an `.env`, token, credential file, browser profile, or local agent settings from the original project.
@@ -30,9 +28,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-v1.ps1
 
 These commands consume no provider credits and create no Outlook items.
 
-## Optional attended provider checks
+## Provider boundary
 
-ZoomInfo remains dry-run unless `-Execute` is supplied to its adapter. Keep `-MaxCredits` low on the first attended run.
+Live ZoomInfo execution is not enabled in v1. The pipeline writes `zoominfo-requests.json`; export or connector work must return schema-compatible `contacts.jsonl` before the second pass. The environment file retains empty ZoomInfo credential names for a future attended adapter, but this release does not consume them.
 
 Outlook remains dry-run unless `-Execute` is supplied:
 
@@ -40,4 +38,4 @@ Outlook remains dry-run unless `-Execute` is supplied:
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\publish-outlook-drafts.ps1 -InputPath staging\runtime\runs\YYYY-MM-DD\drafts.json -DryRun
 ```
 
-After reviewing the payload, replace `-DryRun` with `-Execute` to save unsent drafts. The script has no send path.
+After reviewing the payload, set `AI_GTM_OPERATOR_EMAIL` (or pass `-OperatorEmail`) and replace `-DryRun` with `-Execute` to save unsent prospect and internal-digest drafts. The script has no send path.

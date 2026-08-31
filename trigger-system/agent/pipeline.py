@@ -15,7 +15,7 @@ from .decision import decide
 from .domains import load_domains_from_csv, normalize_domain
 from .models import Account, Signal
 from .play import CandidateDraft, CommitteeMember, Contact, PlayCandidate, build_play
-from .providers import draft_payload
+from .providers import draft_payload, zoominfo_request
 from .signals import load_signal_policy
 
 
@@ -23,9 +23,9 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_INPUTS = (
     "candidates.jsonl",
     "signals.jsonl",
-    "contacts.jsonl",
     "play-candidates.jsonl",
 )
+OPTIONAL_INPUTS = ("contacts.jsonl",)
 
 
 @dataclass(frozen=True)
@@ -78,13 +78,32 @@ def _input_hash(input_dir: Path, policy_paths: list[Path]) -> str:
         digest.update(b"\0")
         digest.update(path.read_bytes())
         digest.update(b"\0")
+    for path in (input_dir / name for name in OPTIONAL_INPUTS):
+        digest.update(path.name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes() if path.exists() else b"<absent>")
+        digest.update(b"\0")
     return digest.hexdigest()
 
 
-def _write_receipt(output_dir: Path, stage: str, input_hash: str, counts: dict[str, int]) -> None:
+def _write_receipt(
+    output_dir: Path,
+    stage: str,
+    input_hash: str,
+    counts: dict[str, int],
+    run_id: str,
+    output_path: Path,
+) -> None:
     _atomic_json(
         output_dir / "receipts" / f"{stage}.json",
-        {"stage": stage, "status": "complete", "input_hash": input_hash, "counts": counts},
+        {
+            "stage": stage,
+            "status": "complete",
+            "input_hash": input_hash,
+            "run_id": run_id,
+            "output_path": str(output_path.resolve()),
+            "counts": counts,
+        },
     )
 
 
@@ -94,6 +113,7 @@ def _candidate_from_dict(row: dict[str, Any]) -> PlayCandidate:
         account_domain=row["account_domain"],
         verdict=row["verdict"],
         signal_types=tuple(row["signal_types"]),
+        evidence_signal_ids=tuple(row["evidence_signal_ids"]),
         pain_statement=row["pain_statement"],
         pain_grade=row["pain_grade"],
         capability_id=row["capability_id"],
@@ -102,6 +122,7 @@ def _candidate_from_dict(row: dict[str, Any]) -> PlayCandidate:
                 contact_id=item["contact_id"],
                 functional_labels=tuple(item.get("functional_labels", [])),
                 reason=item["reason"],
+                role_hypothesis=item["role_hypothesis"],
                 selected_for_outreach=bool(item["selected_for_outreach"]),
             )
             for item in row["committee"]
@@ -128,6 +149,7 @@ def _contact_from_dict(row: dict[str, Any]) -> Contact:
         current_employer_verified=bool(row["current_employer_verified"]),
         email=row.get("email", ""),
         email_verified=bool(row.get("email_verified", False)),
+        role_relevance_verified=bool(row.get("role_relevance_verified", False)),
     )
 
 
@@ -140,7 +162,12 @@ def run_pipeline(input_dir: Path, output_dir: Path, as_of: date) -> PipelineResu
     fingerprint = _input_hash(input_dir, [policy_path, truth_path, suppression_path])
     run_id = f"{as_of.isoformat()}-{fingerprint[:8]}"
     draft_receipt = output_dir / "receipts" / "drafts.json"
-    if draft_receipt.exists() and (output_dir / "drafts.json").exists() and (output_dir / "digest.md").exists():
+    if (
+        draft_receipt.exists()
+        and (output_dir / "drafts.json").exists()
+        and (output_dir / "digest.md").exists()
+        and (output_dir / "zoominfo-requests.json").exists()
+    ):
         receipt = json.loads(draft_receipt.read_text(encoding="utf-8"))
         if receipt.get("input_hash") == fingerprint and receipt.get("status") == "complete":
             decision_receipt = json.loads((output_dir / "receipts" / "decisions.json").read_text(encoding="utf-8"))
@@ -165,6 +192,7 @@ def run_pipeline(input_dir: Path, output_dir: Path, as_of: date) -> PipelineResu
         signals_by_account.setdefault(row["account_id"], []).append(
             Signal(
                 signal_id=row["signal_id"],
+                account_domain=row["account_domain"],
                 signal_type=row["signal_type"],
                 team=row["team"],
                 observed_date=date.fromisoformat(row["observed_date"]),
@@ -194,18 +222,27 @@ def run_pipeline(input_dir: Path, output_dir: Path, as_of: date) -> PipelineResu
     _atomic_text(output_dir / "decisions.jsonl", decision_lines)
     strike_count = sum(item.verdict == "STRIKE" for item in decisions)
     suppressed_count = sum(item.verdict == "SUPPRESSED" for item in decisions)
-    _write_receipt(output_dir, "decisions", fingerprint, {"strikes": strike_count, "suppressed": suppressed_count})
+    _write_receipt(
+        output_dir,
+        "decisions",
+        fingerprint,
+        {"strikes": strike_count, "suppressed": suppressed_count},
+        run_id,
+        output_dir / "decisions.jsonl",
+    )
 
     candidate_by_domain = {
         normalize_domain(row["account_domain"]): _candidate_from_dict(row)
         for row in _read_jsonl(input_dir / "play-candidates.jsonl")
     }
-    contact_rows = _read_jsonl(input_dir / "contacts.jsonl")
+    contacts_path = input_dir / "contacts.jsonl"
+    contact_rows = _read_jsonl(contacts_path) if contacts_path.exists() else []
     contacts_by_domain: dict[str, list[Contact]] = {}
     for row in contact_rows:
         contacts_by_domain.setdefault(normalize_domain(row["account_domain"]), []).append(_contact_from_dict(row))
 
     plays = []
+    requests = []
     missing_candidates = []
     for decision in decisions:
         if decision.verdict != "STRIKE":
@@ -215,19 +252,36 @@ def run_pipeline(input_dir: Path, output_dir: Path, as_of: date) -> PipelineResu
         if candidate is None:
             missing_candidates.append(domain)
             continue
-        plays.append(build_play(candidate, contacts_by_domain.get(domain, []), truth, as_of))
+        requests.append(
+            zoominfo_request(
+                decision,
+                (
+                    member.role_hypothesis
+                    for member in candidate.committee
+                    if member.selected_for_outreach
+                ),
+                suppression,
+            )
+        )
+        plays.append(build_play(candidate, contacts_by_domain.get(domain, []), truth, as_of, decision))
+
+    _atomic_json(output_dir / "zoominfo-requests.json", {"action": "enrich_contacts", "requests": requests})
 
     play_lines = "".join(json.dumps(asdict(item), default=_json_default) + "\n" for item in plays)
     _atomic_text(output_dir / "plays.jsonl", play_lines)
     hold_count = sum(len(play.holds) for play in plays) + len(missing_candidates)
-    _write_receipt(output_dir, "plays", fingerprint, {"plays": len(plays), "holds": hold_count})
+    _write_receipt(
+        output_dir,
+        "plays",
+        fingerprint,
+        {"plays": len(plays), "holds": hold_count},
+        run_id,
+        output_dir / "plays.jsonl",
+    )
 
     combined_drafts = []
     for play in plays:
         combined_drafts.extend(draft_payload(play, run_id)["drafts"])
-    combined_payload = {"action": "save_draft", "run_id": run_id, "drafts": combined_drafts}
-    _atomic_json(output_dir / "drafts.json", combined_payload)
-
     digest = [
         f"# Monday STRIKE Digest - {as_of.isoformat()}",
         "",
@@ -251,6 +305,28 @@ def run_pipeline(input_dir: Path, output_dir: Path, as_of: date) -> PipelineResu
         )
     for domain in missing_candidates:
         digest.append(f"- HOLD {domain}: STRIKE has no AI-authored play candidate")
-    _atomic_text(output_dir / "digest.md", "\n".join(digest).rstrip() + "\n")
-    _write_receipt(output_dir, "drafts", fingerprint, {"drafts": len(combined_drafts)})
+    digest_body = "\n".join(digest).rstrip() + "\n"
+    _atomic_text(output_dir / "digest.md", digest_body)
+    digest_key = hashlib.sha256(f"{run_id}|operator-digest|{digest_body}".encode("utf-8")).hexdigest()
+    combined_payload = {
+        "action": "save_draft",
+        "run_id": run_id,
+        "drafts": combined_drafts,
+        "internal_digest": {
+            "action": "save_draft",
+            "to_env": "AI_GTM_OPERATOR_EMAIL",
+            "subject": f"Monday STRIKE Digest - {as_of.isoformat()}",
+            "body": digest_body,
+            "idempotency_key": digest_key,
+        },
+    }
+    _atomic_json(output_dir / "drafts.json", combined_payload)
+    _write_receipt(
+        output_dir,
+        "drafts",
+        fingerprint,
+        {"drafts": len(combined_drafts)},
+        run_id,
+        output_dir / "drafts.json",
+    )
     return PipelineResult(run_id, strike_count, suppressed_count, len(plays), len(combined_drafts), hold_count, output_dir, False)

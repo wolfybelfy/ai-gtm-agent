@@ -22,6 +22,7 @@ class DecisionTests(unittest.TestCase):
         )
         self.leader = Signal(
             signal_id="leader-1",
+            account_domain="acme.example",
             signal_type="new_marketing_leader",
             team="marketing",
             observed_date=date(2026, 7, 15),
@@ -31,10 +32,11 @@ class DecisionTests(unittest.TestCase):
         )
         self.hiring = Signal(
             signal_id="hiring-1",
+            account_domain="acme.example",
             signal_type="hiring_surge",
             team="marketing",
             observed_date=date(2026, 8, 20),
-            source_url="https://jobs.acme.example/marketing",
+            source_url="https://boards.greenhouse.io/acme",
             source_key="acme-ats",
             evidence_quote="Three marketing roles are currently open.",
             metadata={"open_role_count": 3},
@@ -72,9 +74,33 @@ class DecisionTests(unittest.TestCase):
         self.assertNotEqual(result.verdict, "STRIKE")
         self.assertEqual(result.independent_signal_count, 1)
 
+    def test_same_url_with_different_caller_keys_is_not_independent(self):
+        same_publisher = replace(
+            self.hiring,
+            source_url=self.leader.source_url,
+            source_key="a-different-caller-key",
+        )
+        result = decide(self.account, [self.leader, same_publisher], AS_OF, self.policy)
+        self.assertNotEqual(result.verdict, "STRIKE")
+        self.assertEqual(result.independent_signal_count, 1)
+
     def test_different_teams_do_not_form_a_strike(self):
         other_team = replace(self.hiring, team="sales")
         result = decide(self.account, [self.leader, other_team], AS_OF, self.policy)
+        self.assertNotEqual(result.verdict, "STRIKE")
+
+    def test_blank_team_does_not_form_a_strike(self):
+        result = decide(
+            self.account,
+            [replace(self.leader, team=""), replace(self.hiring, team="")],
+            AS_OF,
+            self.policy,
+        )
+        self.assertNotEqual(result.verdict, "STRIKE")
+
+    def test_signal_bound_to_another_company_does_not_form_a_strike(self):
+        foreign = replace(self.hiring, account_domain="other.example")
+        result = decide(self.account, [self.leader, foreign], AS_OF, self.policy)
         self.assertNotEqual(result.verdict, "STRIKE")
 
     def test_suppressed_account_is_never_scored_for_outreach(self):
@@ -82,6 +108,13 @@ class DecisionTests(unittest.TestCase):
         result = decide(suppressed, [self.leader, self.hiring], AS_OF, self.policy)
         self.assertEqual(result.verdict, "SUPPRESSED")
         self.assertEqual(result.heat_score, 0)
+
+    def test_suppression_happens_before_malformed_signal_evaluation(self):
+        suppressed = replace(self.account, suppressed=True)
+        malformed = replace(self.hiring, metadata={"open_role_count": "not-a-number"})
+        result = decide(suppressed, [malformed], AS_OF, self.policy)
+        self.assertEqual(result.verdict, "SUPPRESSED")
+        self.assertEqual(result.evaluations, ())
 
     def test_low_fit_high_heat_strike_is_labelled_outlier(self):
         low_fit = replace(self.account, fit_score=20)

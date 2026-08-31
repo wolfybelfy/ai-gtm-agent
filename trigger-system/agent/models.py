@@ -21,6 +21,7 @@ class Account:
 @dataclass(frozen=True)
 class Signal:
     signal_id: str
+    account_domain: str
     signal_type: str
     team: str
     observed_date: date

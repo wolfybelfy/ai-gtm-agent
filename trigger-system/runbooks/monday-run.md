@@ -2,12 +2,13 @@
 
 ## 1. Build the evidence handoff
 
-Create `staging\runtime\inbox\` with four schema-compatible JSONL files:
+Create `staging\runtime\inbox\` with three schema-compatible JSONL files:
 
 - `candidates.jsonl`: normalized company, domain, headquarters, and fit score.
 - `signals.jsonl`: signal type, affected team, observed date, source URL/key, verbatim evidence, confidence, and metadata.
 - `play-candidates.jsonl`: Play Director output for STRIKE accounts.
-- `contacts.jsonl`: ZoomInfo-verified contact results for the AI-selected roles.
+
+`contacts.jsonl` is optional on the first pass. It is the second-pass handoff for provider-verified contact results.
 
 Public research and semantic play building must run without ZoomInfo credentials or Outlook objects. Do not reuse the synthetic fixture as live evidence.
 
@@ -17,15 +18,15 @@ Public research and semantic play building must run without ZoomInfo credentials
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\ai-gtm.ps1 -DryRun
 ```
 
-The run writes decisions, validated plays, a draft-only payload, a digest, and stage receipts under `staging\runtime\runs\<date>\`.
+The run writes decisions, `zoominfo-requests.json`, validated plays, a draft-only payload, a digest, and stage receipts under `staging\runtime\runs\<date>\`.
 
 ## 3. Review holds and claims
 
 Open `digest.md`. Resolve only with evidence. Common holds are missing AI candidate, unverified employment, domain mismatch, non-US location, unavailable work email, unknown pain, and stale proof. Never guess through a hold.
 
-## 4. Run ZoomInfo only when needed
+## 4. Complete the ZoomInfo handoff only when needed
 
-The AI must first name the role hypotheses. Run the ZoomInfo adapter in plan mode, inspect the count, and use `-Execute` only with a deliberate credit cap. Re-run deterministic validation after importing verified results.
+Live ZoomInfo execution is not enabled in v1. Review `zoominfo-requests.json`, obtain results through an attended export or a future approved connector, and import only verified records as `contacts.jsonl`. Re-run deterministic validation; the changed input hash creates a new second-pass result.
 
 ## 5. Save Outlook drafts
 

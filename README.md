@@ -1,20 +1,20 @@
 # AI GTM Agent
 
-AI GTM Agent is an isolated open-market STRIKE system. It discovers and evaluates companies outside the existing TAL, builds evidence-backed plays, prepares ZoomInfo enrichment requests only after STRIKE, and saves reviewable Outlook drafts without sending them.
+AI GTM Agent is an isolated open-market STRIKE validation system. It evaluates normalized public evidence for companies outside the existing TAL, validates evidence-backed play candidates, prepares ZoomInfo request handoffs only after STRIKE, and saves reviewable Outlook drafts without sending them.
 
 The original `ICP Converstion Intelligence` project is a separate system and must not be edited from this repository.
 
 ## V1 flow
 
-`public evidence -> TAL suppression -> fit + heat -> STRIKE -> AI play candidate -> deterministic validation -> ZoomInfo -> unsent Outlook drafts -> Monday digest`
+`normalized public evidence -> TAL suppression -> fit + heat -> STRIKE -> AI play candidate -> deterministic validation -> ZoomInfo request handoff -> verified-contact import -> unsent Outlook drafts + Monday digest`
 
 The runtime connections are deliberately narrow:
 
-- Public web and SEC/EDGAR sources for evidence.
-- ZoomInfo for post-STRIKE people verification.
+- Public web and SEC/EDGAR research imported as normalized evidence.
+- A post-STRIKE ZoomInfo request file and a separate verified-contact import.
 - Local Outlook for unsent drafts.
 
-HubSpot, Teams, OneDrive/Graph, Clay, JustCall, Serper, automatic sending, reply monitoring, sequences, and one-pagers are not runtime components.
+Live web collectors and a live ZoomInfo connector are not enabled in v1. HubSpot, Teams, OneDrive/Graph, Clay, automatic sending, reply monitoring, sequences, and one-pagers are not runtime components. The distilled call and meeting corpus remains local play-writing context, not a runtime integration.
 
 ## First safe run
 

@@ -1,5 +1,6 @@
 param(
-    [string]$ExpectedOriginalHead = 'c48311296f5c96e9a0514e5964d864df868cf2ed'
+    [string]$ExpectedOriginalHead = 'c48311296f5c96e9a0514e5964d864df868cf2ed',
+    [string]$ExpectedOriginalFingerprint = '4156d8fa95b7162571a86cfd16e33a3c656335e6d47a551d32b7ff13271cea21'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -9,6 +10,35 @@ $repo = Split-Path -Parent $root
 function Assert-True([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
     Write-Host ("PASS: " + $Message)
+}
+
+$AllowedVolatilePrefixes = @('data/','logs/','staging/','plays/','briefs/','deliverables/','_doc_work/')
+
+function Test-VolatilePath([string]$RelativePath) {
+    $normalized = $RelativePath.Replace('\', '/').Trim('"')
+    foreach ($prefix in $AllowedVolatilePrefixes) {
+        if ($normalized.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    }
+    return $false
+}
+
+function Get-ProtectedFingerprint([string]$Repository) {
+    $entries = foreach ($relative in (& git -C $Repository ls-files)) {
+        $normalized = $relative.Replace('\', '/')
+        if (-not (Test-VolatilePath $normalized)) {
+            $absolute = Join-Path $Repository $relative
+            $hash = (Get-FileHash -LiteralPath $absolute -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$normalized|$hash"
+        }
+    }
+    $payload = (($entries | Sort-Object) -join "`n")
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    try {
+        $bytes = [Text.Encoding]::UTF8.GetBytes($payload)
+        return ([BitConverter]::ToString($algorithm.ComputeHash($bytes))).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $algorithm.Dispose()
+    }
 }
 
 Push-Location $root
@@ -25,11 +55,10 @@ try {
     Assert-True ($unique.Count -eq 648) 'all 648 suppression domains are unique'
 
     Write-Host '=== Runtime safety scan ==='
-    $activeFiles = @(
-        (Join-Path $root 'scripts\ai-gtm.ps1'),
-        (Join-Path $root 'scripts\publish-outlook-drafts.ps1'),
-        (Join-Path $root 'scripts\zoominfo-enrich.ps1')
-    )
+    $scriptNames = @(Get-ChildItem -LiteralPath (Join-Path $root 'scripts') -File | ForEach-Object { $_.Name } | Sort-Object)
+    $expectedScripts = @('.gitkeep','ai-gtm.ps1','publish-outlook-drafts.ps1','verify-v1.ps1') | Sort-Object
+    Assert-True (($scriptNames -join '|') -eq ($expectedScripts -join '|')) 'active script directory matches the v1 allowlist'
+    $activeFiles = @((Join-Path $root 'scripts\ai-gtm.ps1'), (Join-Path $root 'scripts\publish-outlook-drafts.ps1'))
     foreach ($file in $activeFiles) {
         $text = Get-Content -Raw -LiteralPath $file
         Assert-True (-not $text.Contains('.Send(')) ("no .Send( call in " + (Split-Path $file -Leaf))
@@ -50,7 +79,7 @@ try {
     Assert-True (@($payload.drafts).Count -eq 1) 'fixture produced exactly one draft payload without duplication'
 
     Write-Host '=== Outlook dry-run ==='
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'scripts\publish-outlook-drafts.ps1') -InputPath (Join-Path $root 'fixtures\monday\drafts.json') -DryRun
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'scripts\publish-outlook-drafts.ps1') -InputPath (Join-Path $verifyOutput 'drafts.json') -DryRun
     Assert-True ($LASTEXITCODE -eq 0) 'Outlook adapter dry-run created no Outlook items'
 
     Write-Host '=== Git isolation ==='
@@ -64,8 +93,15 @@ try {
     Assert-True (Test-Path -LiteralPath $original) 'original project guard path exists'
     $originalHead = (& git -C $original rev-parse HEAD).Trim()
     Assert-True ($originalHead -eq $ExpectedOriginalHead) 'original Git HEAD matches the recorded pre-build value'
-    $protectedStatus = (& git -C $original status --porcelain=v1 -- CLAUDE.md config context reference runbooks scripts 2>&1 | Out-String).Trim()
-    Assert-True ([string]::IsNullOrWhiteSpace($protectedStatus)) 'original protected source paths have no working-tree changes'
+    $unexpectedStatus = @()
+    foreach ($line in (& git -C $original status --porcelain=v1 --untracked-files=all)) {
+        if ($line.Length -lt 4) { continue }
+        $relative = $line.Substring(3).Trim()
+        if (-not (Test-VolatilePath $relative)) { $unexpectedStatus += $line }
+    }
+    Assert-True ($unexpectedStatus.Count -eq 0) 'original has no changes outside explicit volatile runtime paths'
+    $originalFingerprint = Get-ProtectedFingerprint $original
+    Assert-True ($originalFingerprint -eq $ExpectedOriginalFingerprint) 'all tracked non-volatile original files match the pre-build fingerprint'
 
     Write-Host '=== Existing presentation smoke ==='
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'tests\presentation-smoke.ps1')

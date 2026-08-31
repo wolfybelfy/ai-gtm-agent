@@ -9,6 +9,7 @@ from typing import Any, Iterable
 
 from .claims import blocked_phrases, eligible_proof
 from .domains import normalize_domain
+from .models import Decision
 
 
 US_COUNTRIES = {"united states", "united states of america", "us", "usa", "u.s.", "u.s.a."}
@@ -32,6 +33,7 @@ class Contact:
     current_employer_verified: bool
     email: str
     email_verified: bool
+    role_relevance_verified: bool
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,7 @@ class CommitteeMember:
     contact_id: str
     functional_labels: tuple[str, ...]
     reason: str
+    role_hypothesis: str
     selected_for_outreach: bool
 
 
@@ -56,6 +59,7 @@ class PlayCandidate:
     account_domain: str
     verdict: str
     signal_types: tuple[str, ...]
+    evidence_signal_ids: tuple[str, ...]
     pain_statement: str
     pain_grade: str
     capability_id: str
@@ -109,6 +113,19 @@ def _validate_body(body: str, truth: dict[str, Any]) -> str:
     return normalized
 
 
+def _validate_body_template(body: str, truth: dict[str, Any]) -> None:
+    """Reject unreviewed quantitative or copied proof before approved injection."""
+    if re.search(r"(?<![A-Za-z])\d|[%$]", body):
+        raise PolicyError("email template contains a quantitative claim outside approved proof injection")
+    lowered_words = re.findall(r"\b[\w'-]+\b", body.lower())
+    body_windows = {tuple(lowered_words[index : index + 5]) for index in range(len(lowered_words) - 4)}
+    for proof in truth.get("proof_points", []):
+        claim_words = re.findall(r"\b[\w'-]+\b", str(proof.get("claim", "")).lower())
+        claim_windows = {tuple(claim_words[index : index + 5]) for index in range(len(claim_words) - 4)}
+        if body_windows & claim_windows:
+            raise PolicyError("email template contains proof text outside approved proof injection")
+
+
 def _contact_hold(contact: Contact, account_domain: str) -> str | None:
     if not contact.current_employer_verified:
         return "current employment is not verified"
@@ -118,6 +135,11 @@ def _contact_hold(contact: Contact, account_domain: str) -> str | None:
         return "contact is not verified as US-based"
     if not contact.email_verified or not contact.email.strip():
         return "verified work email is unavailable"
+    email_domain = normalize_domain(contact.email.rsplit("@", 1)[-1]) if "@" in contact.email else ""
+    if email_domain != normalize_domain(account_domain):
+        return "verified work email domain does not match the STRIKE account"
+    if not contact.role_relevance_verified:
+        return "contact role relevance is not verified"
     return None
 
 
@@ -126,9 +148,25 @@ def build_play(
     contacts: Iterable[Contact],
     truth: dict[str, Any],
     as_of: date,
+    decision: Decision,
 ) -> ValidatedPlay:
-    if candidate.verdict != "STRIKE":
+    if candidate.verdict != "STRIKE" or decision.verdict != "STRIKE":
         raise PolicyError("only STRIKE candidates can produce a play")
+    if normalize_domain(candidate.account_domain) != normalize_domain(decision.account.domain):
+        raise PolicyError("play account does not match the STRIKE decision")
+    evidence = tuple(
+        item.signal
+        for item in decision.evaluations
+        if item.window_state == "in_window"
+        and not item.evidence_only
+        and item.signal.confidence == "verified"
+        and item.signal.team == decision.primary_team
+        and normalize_domain(item.signal.account_domain) == normalize_domain(decision.account.domain)
+    )
+    if set(candidate.evidence_signal_ids) != {item.signal_id for item in evidence}:
+        raise PolicyError("play evidence does not match the STRIKE decision")
+    if set(candidate.signal_types) != {item.signal_type for item in evidence}:
+        raise PolicyError("play signal types do not match the STRIKE decision")
     if candidate.pain_grade not in VALID_PAIN_GRADES:
         raise PolicyError(f"invalid pain grade: {candidate.pain_grade}")
     capabilities = {item.get("id") for item in truth.get("capabilities", [])}
@@ -164,7 +202,8 @@ def build_play(
             holds.append(Hold(member.contact_id, "selected contact has no candidate email"))
             continue
         _validate_subject(draft.subject)
-        proof = eligible_proof(truth, draft.proof_id, candidate.signal_types, as_of)
+        _validate_body_template(draft.body_template, truth)
+        proof = eligible_proof(truth, draft.proof_id, tuple(item.signal_type for item in evidence), as_of)
         proof_text = ""
         accepted_proof_id = None
         if draft.proof_id:

@@ -25,7 +25,7 @@ Facts remain facts and hypotheses remain hypotheses. “No evidence found” alw
 
 Champion, decision-maker, influencer, blocker, connector, and insider are optional functional labels. Never force a role into the committee to complete a pattern. Committee membership does not automatically make someone an outreach target.
 
-Only contacts verified as currently employed by the account and based in the United States can receive a v1 draft. Non-US contacts remain research-only holds. Missing or ambiguous location is a hold, not an assumption.
+Only contacts with verified role relevance, current employment, a company-matching work-email domain, and a verified United States work location can receive a v1 draft. Non-US contacts remain research-only holds. Missing or ambiguous evidence is a hold, not an assumption.
 
 ## Email rules
 

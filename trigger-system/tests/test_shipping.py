@@ -7,27 +7,17 @@ TRIGGER = REPO / "trigger-system"
 
 
 class ShippingContractTests(unittest.TestCase):
-    def test_excluded_integration_scripts_are_absent(self):
-        excluded = [
-            "alert-mailer.ps1",
-            "alert-teams.ps1",
-            "hubspot-export-deals.ps1",
-            "hubspot-setup.ps1",
-            "hubspot-write-play.ps1",
-            "onedrive-share-link.ps1",
-            "onedrive-signin.ps1",
-            "extract-sdr-sheet.ps1",
-            "extract-sdr-signals.ps1",
-            "smoke-outlook-com.ps1",
-        ]
-        for name in excluded:
-            self.assertFalse((TRIGGER / "scripts" / name).exists(), name)
+    def test_active_script_directory_is_an_explicit_allowlist(self):
+        names = {path.name for path in (TRIGGER / "scripts").iterdir() if path.is_file()}
+        self.assertEqual(
+            names,
+            {".gitkeep", "ai-gtm.ps1", "publish-outlook-drafts.ps1", "verify-v1.ps1"},
+        )
 
     def test_active_scripts_contain_no_send_method(self):
         active = [
             TRIGGER / "scripts" / "ai-gtm.ps1",
             TRIGGER / "scripts" / "publish-outlook-drafts.ps1",
-            TRIGGER / "scripts" / "zoominfo-enrich.ps1",
         ]
         for path in active:
             self.assertNotIn(".Send(", path.read_text(encoding="utf-8"), path.name)
@@ -40,7 +30,7 @@ class ShippingContractTests(unittest.TestCase):
         ]
         self.assertEqual(
             lines,
-            ["ZOOMINFO_CLIENT_ID=", "ZOOMINFO_CLIENT_SECRET="],
+            ["AI_GTM_OPERATOR_EMAIL=", "ZOOMINFO_CLIENT_ID=", "ZOOMINFO_CLIENT_SECRET="],
         )
 
     def test_verification_script_checks_core_shipping_rails(self):
@@ -52,8 +42,17 @@ class ShippingContractTests(unittest.TestCase):
             "suppression-baseline.csv",
             "ICP Converstion Intelligence",
             "reused run",
+            "Get-FileHash",
+            "AllowedVolatilePrefixes",
+            "ls-files",
         ]:
             self.assertIn(marker, text)
+
+    def test_docs_do_not_claim_a_live_zoominfo_connection(self):
+        setup = (TRIGGER / "runbooks" / "setup.md").read_text(encoding="utf-8")
+        monday = (TRIGGER / "runbooks" / "monday-run.md").read_text(encoding="utf-8")
+        self.assertNotIn("zoominfo-enrich.ps1", (setup + monday).lower())
+        self.assertIn("not enabled", (setup + monday).lower())
 
 
 if __name__ == "__main__":

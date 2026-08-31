@@ -27,8 +27,8 @@ class ProviderTests(unittest.TestCase):
     def _strike(self):
         account = Account("acme", "Acme", "acme.example", "United States", 70)
         signals = [
-            Signal("a", "new_marketing_leader", "marketing", date(2026, 7, 15), "https://a.example", "a", "New leader"),
-            Signal("b", "hiring_surge", "marketing", date(2026, 8, 20), "https://b.example", "b", "Three roles", metadata={"open_role_count": 3}),
+            Signal("a", "acme.example", "new_marketing_leader", "marketing", date(2026, 7, 15), "https://a.example", "a", "New leader"),
+            Signal("b", "acme.example", "hiring_surge", "marketing", date(2026, 8, 20), "https://b.example", "b", "Three roles", metadata={"open_role_count": 3}),
         ]
         return decide(account, signals, AS_OF, load_signal_policy())
 
@@ -38,14 +38,16 @@ class ProviderTests(unittest.TestCase):
             "acme.example",
             "STRIKE",
             ("new_marketing_leader", "hiring_surge"),
+            ("a", "b"),
             "The team may be balancing a rebuild with pipeline execution.",
             "corpus_supported_hypothesis",
             "gtm_strategy",
-            (CommitteeMember("c1", ("champion",), "Owns demand.", True),),
+            (CommitteeMember("c1", ("champion",), "Owns demand.", "VP Demand Generation", True),),
             (CandidateDraft("c1", "planning gap", BODY),),
         )
-        contacts = [Contact("c1", "Alex Morgan", "VP Demand", "acme.example", "US", True, "alex@acme.example", True)]
-        return build_play(candidate, contacts, load_commercial_truth(), AS_OF)
+        contacts = [Contact("c1", "Alex Morgan", "VP Demand", "acme.example", "US", True, "alex@acme.example", True, True)]
+        decision = self._strike()
+        return build_play(candidate, contacts, load_commercial_truth(), AS_OF, decision)
 
     def test_zoominfo_request_requires_strike(self):
         watch = self._strike()
@@ -79,11 +81,14 @@ class ProviderTests(unittest.TestCase):
         self.assertIn(".Save()", text)
         self.assertNotIn(".Send(", text)
         self.assertIn("[switch]$Execute", text)
+        self.assertIn("AI_GTM_IDEMPOTENCY_KEY", text)
+        self.assertIn("UserProperties.Find", text)
+        self.assertIn("Move-Item", text)
+        self.assertIn("internal_digest", text)
+        self.assertIn("AI_GTM_OPERATOR_EMAIL", text)
 
-    def test_zoominfo_adapter_no_longer_depends_on_hubspot_suppression(self):
-        text = ZOOMINFO_SCRIPT.read_text(encoding="utf-8").lower()
-        self.assertNotIn("staging\\hubspot\\suppression.csv", text)
-        self.assertIn("config\\suppression-baseline.csv", text)
+    def test_unsafe_legacy_zoominfo_adapter_is_not_shipped(self):
+        self.assertFalse(ZOOMINFO_SCRIPT.exists())
 
 
 if __name__ == "__main__":
