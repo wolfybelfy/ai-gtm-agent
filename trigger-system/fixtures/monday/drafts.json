@@ -1,0 +1,17 @@
+{
+  "action": "save_draft",
+  "run_id": "fixture-run",
+  "play_id": "fixture-play",
+  "account_domain": "acme.example",
+  "drafts": [
+    {
+      "action": "save_draft",
+      "contact_id": "acme-us",
+      "to": "alex@acme.example",
+      "subject": "planning gap",
+      "body": "This is a synthetic fixture used only to prove the Outlook adapter stays in draft mode.",
+      "proof_id": null,
+      "idempotency_key": "fixture-outlook-draft"
+    }
+  ]
+}
