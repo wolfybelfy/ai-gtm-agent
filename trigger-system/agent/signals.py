@@ -56,4 +56,3 @@ def evaluate_signal(
         reason=reason,
         evidence_only=evidence_only,
     )
-

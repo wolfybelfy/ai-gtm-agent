@@ -46,4 +46,3 @@ def blocked_phrases(truth: dict[str, Any]) -> tuple[str, ...]:
     values = list(truth.get("blocked_phrases", []))
     values.extend(truth.get("terminology", {}).get("blocked", []))
     return tuple(str(value).strip().lower() for value in values if str(value).strip())
-

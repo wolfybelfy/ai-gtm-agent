@@ -22,4 +22,3 @@
     "executive_rebuild_content": {"tier": "experimental", "weight": 0, "min_age_days": 0, "max_age_days": 30, "evidence_only": true}
   }
 }
-

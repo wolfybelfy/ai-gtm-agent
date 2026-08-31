@@ -85,4 +85,3 @@ def write_suppression_csv(path: Path, values: Iterable[str]) -> int:
     text = "domain\n" + "".join(f"{domain}\n" for domain in domains)
     target.write_text(text, encoding="utf-8", newline="")
     return len(domains)
-

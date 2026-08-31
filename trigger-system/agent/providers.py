@@ -63,4 +63,3 @@ def draft_payload(play: ValidatedPlay, run_id: str) -> dict:
         "account_domain": play.account_domain,
         "drafts": drafts,
     }
-

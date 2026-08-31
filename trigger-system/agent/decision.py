@@ -76,4 +76,3 @@ def decide(
         evaluations=evaluations,
         reason=reason,
     )
-

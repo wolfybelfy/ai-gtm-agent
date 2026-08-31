@@ -55,4 +55,3 @@ try {
 } finally {
     if ($null -ne $outlook) { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($outlook) }
 }
-

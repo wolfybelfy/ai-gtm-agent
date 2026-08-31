@@ -195,4 +195,3 @@ def build_play(
         pain_grade=candidate.pain_grade,
         capability_id=candidate.capability_id,
     )
-

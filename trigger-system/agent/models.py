@@ -53,4 +53,3 @@ class Decision:
     low_fit_outlier: bool
     evaluations: tuple[SignalEvaluation, ...]
     reason: str
-

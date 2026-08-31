@@ -254,4 +254,3 @@ def run_pipeline(input_dir: Path, output_dir: Path, as_of: date) -> PipelineResu
     _atomic_text(output_dir / "digest.md", "\n".join(digest).rstrip() + "\n")
     _write_receipt(output_dir, "drafts", fingerprint, {"drafts": len(combined_drafts)})
     return PipelineResult(run_id, strike_count, suppressed_count, len(plays), len(combined_drafts), hold_count, output_dir, False)
-

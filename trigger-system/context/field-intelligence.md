@@ -107,4 +107,3 @@ The safe identity is an embedded B2B agency partner that helps teams identify th
 ## Source provenance
 
 This synthesis is derived from the original project's sanitized call, meeting, opener, offer, and email-craft files; the JustCall May, Q2, and July-August reports; and the buying-committee and GTM research files reviewed during the duplicate's architecture audit. Raw source paths remain local and read-only.
-
