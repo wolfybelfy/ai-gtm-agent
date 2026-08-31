@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-08-31",
+  "terminology": {
+    "approved": ["Brand and Demand", "brand-to-revenue", "ABM", "embedded agency partner", "TechResearchOnline"],
+    "internal_only": ["ABX"],
+    "blocked": ["brand to demand", "platform", "database", "list provider"]
+  },
+  "capabilities": [
+    {"id": "gtm_strategy", "name": "GTM Strategy and Consulting"},
+    {"id": "revenue_ops", "name": "Marketing and Revenue Operations"},
+    {"id": "brand_content", "name": "Brand and Content"},
+    {"id": "demand_generation", "name": "Demand Generation"},
+    {"id": "abm", "name": "Account-Based Marketing"},
+    {"id": "channel_gtm", "name": "Channel and Partner GTM"}
+  ],
+  "blocked_claim_categories": ["audience_size", "unsupported_privacy_or_gdpr", "delivery_guarantee", "comparative_benchmark", "unapproved_client_reference", "internal_pricing"],
+  "blocked_phrases": ["100 million", "30k accounts", "500 leads", "this is not a sales call", "I don't have a list"],
+  "proof_points": [
+    {
+      "id": "aws_event_program",
+      "use_cases": ["conference", "event_nurture", "technical_webinar"],
+      "claim": "A published technical-event program reported three times live attendance, more than 250 registrations, about 56 live attendees, 55 percent net-new participation, and more than 40 percent engagement.",
+      "source": "context/offer.md#aws-opensearch",
+      "status": "review_required",
+      "review_after": "2026-08-29"
+    },
+    {
+      "id": "todyl_pipeline_program",
+      "use_cases": ["rebrand", "category_creation", "paid_media", "pipeline"],
+      "claim": "A published 90-day integrated program reported 240 thousand dollars in first-quarter pipeline, six times return on ad spend, and four closed-won deals.",
+      "source": "context/offer.md#todyl",
+      "status": "review_required",
+      "review_after": "2026-08-29"
+    }
+  ]
+}
