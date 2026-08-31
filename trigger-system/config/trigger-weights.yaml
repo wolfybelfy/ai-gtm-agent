@@ -1,0 +1,166 @@
+﻿# trigger-weights.yaml — every strategy-§2 trigger, encoded 2026-07-27 from
+# reference\strategy-2026-07-26-trigger-outbound-meeting-system.md (names kept diffable against its tables).
+# ALL weights are HYPOTHESES (strategy §3: "All weights start as hypotheses") until the Phase-3
+# four-cohort backtest and the weekly loop replace them with Unbound's own data.
+# backtest_status: untested -> won_only | everywhere | nowhere | insufficient_data
+# kill_status: active | halved | killed
+# min_exposure_sends: halve/kill applies ONLY at >= this many delivered sends for the trigger type;
+# below it the verdict is "insufficient data" (approved deviation (a), BUILD-STATE).
+
+defaults:
+  min_exposure_sends: 20   # HYPOTHESIS default — corrected by pilot data (BUILD-STATE decision log 2026-07-27)
+  weight_scale: "tier A = 3, tier B = 2, tier C = 1 (hypothesis; STRIKE arithmetic is trigger COUNT >= 2 in-window from different sources, per strategy §3 — weights rank queue priority, they do not gate STRIKE)"
+
+tier_A:   # "budget + urgency proven" — strike on these
+  new_marketing_leader:
+    strategy_name: "New marketing leader at the team (VP/head/CMO of the BU)"
+    window: "days 30-90 of tenure (before 30 they're listening, after 90 plans are set)"
+    detect: ["press/newsroom + leadership pages", "weekly leadership-page/newsroom check (ZoomInfo contact search at verdict only)"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+  hiring_surge:
+    strategy_name: "Marketing hiring surge at the team (>=2-3 open demand-gen/ABM/field/PMM reqs)"
+    window: "while reqs open"
+    detect: ["daily public ATS feed diff (Greenhouse/Lever JSON - free)"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+  stale_or_reposted_req:
+    strategy_name: "Marketing req stale (60d+) or reposted"
+    window: "while open / 0-30d from repost"
+    detect: ["same ATS diff vs. history"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+  acquisition:
+    strategy_name: "Acquisition affecting the team (close date, not announcement)"
+    window: "0-9 months post-close"
+    detect: ["news sweep + press releases (log announce AND close dates)", "SEC EDGAR 8-K for US-listed"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+  jd_agency_language:
+    strategy_name: "JD language: 'manage agencies/vendors' in a marketing req"
+    window: "while req open"
+    detect: ["semantic JD read in ATS diff (strategy §4.1)"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+  past_champion_lands:
+    strategy_name: "Past champion lands at a TAL account"
+    window: "days 30-120 of new tenure"
+    detect: ["named past-champion list (Week 1 interviews)", "periodic job-change check (ZoomInfo contact search, verdict-gated)"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+  closed_lost_reactivation:
+    strategy_name: "Closed-lost account shows a fresh trigger cluster"
+    window: "while cluster in-window"
+    detect: ["HubSpot closed-lost sweep joined against the daily trigger log"]
+    weight: 3
+    backtest_status: untested
+    kill_status: active
+
+tier_B:   # "dateable spend windows" — the timing edge
+  conference_exhibit:
+    strategy_name: "Conference exhibit/sponsorship (RSA, Black Hat, re:Invent, KubeCon, Gartner summits, vertical events)"
+    window: "8-14 weeks BEFORE event (start_date - 98d .. start_date - 56d); worthless at T-2w"
+    detect: ["weekly exhibitor-list scrape per event (free)", "data\\event-calendar.csv"]
+    weight: 2
+    backtest_status: untested
+    kill_status: active
+  product_launch_ga:
+    strategy_name: "Product launch / GA"
+    window: "-6 to +12 weeks"
+    detect: ["newsroom + news sweep"]
+    weight: 2
+    backtest_status: untested
+    kill_status: active
+  regional_expansion:
+    strategy_name: "Regional expansion / new market entry"
+    window: "0-6 months"
+    detect: ["news + hiring location shift"]
+    weight: 2
+    backtest_status: untested
+    kill_status: active
+  analyst_placement:
+    strategy_name: "Analyst placement (Gartner MQ, Forrester Wave, GigaOm)"
+    window: "0-8 weeks post-publication"
+    detect: ["vendor newsrooms + analyst calendars"]
+    weight: 2
+    backtest_status: untested
+    kill_status: active
+  rebrand_repositioning:
+    strategy_name: "Rebrand / repositioning"
+    window: "0-6 months"
+    detect: ["news + site change"]
+    weight: 2
+    backtest_status: untested
+    kill_status: active
+  funding_round:
+    strategy_name: "Funding round (only for the smaller half of the TAL)"
+    window: "0-90d, low weight"
+    detect: ["news sweep"]
+    weight: 1   # strategy explicitly says low weight — most commoditized signal in existence
+    backtest_status: untested
+    kill_status: active
+
+tier_C:   # "self-made intent" — we create the engagement, then track it; never bought
+  # NOTE (labeled, not invented): strategy §2 Tier C defines NO window column. Until the user/weekly
+  # loop confirms one, each entry carries window_hypothesis; a Tier-C trigger MAY support WATCH freely,
+  # but when it participates in STRIKE arithmetic the brief must flag that its window is a hypothesis.
+  linkedin_engagement:
+    strategy_name: "TAL marketing leader engages with demand-gen content on LinkedIn"
+    window: "UNSET in strategy"
+    window_hypothesis: "engagement within last 14 days"
+    detect: ["RETIRED 2026-08-24 (was a Clay-only source; Clay removed by user order) - no lawful automated substitute exists; manual/attended only"]
+    weight: 1
+    backtest_status: untested
+    kill_status: active
+  tracked_asset_engagement:
+    strategy_name: "Prospect opens/spends time on our tracked asset, or forwards it internally"
+    window: "UNSET in strategy"
+    window_hypothesis: "activity within last 7 days"
+    detect: ["gated trackable link telemetry"]
+    weight: 1
+    telemetry_rule: "v1.1 (approved deviation (c)): a lone open is NEVER a standalone intent event; call-now requires a direct reply OR repeated/multi-person engagement after bot filtering; asset activity only ranks follow-up priority"
+    backtest_status: untested
+    kill_status: active
+  reply_any:
+    strategy_name: "Reply of any kind"
+    window: "immediate (classified within minutes, strategy §5.4)"
+    detect: ["sequencer reply webhook / inbox monitoring at Gate-2 tool"]
+    weight: 1
+    backtest_status: untested
+    kill_status: active
+
+tier_D:   # "message ammunition only" — NEVER triggers outreach alone (strategy §2 Tier D)
+  capability_gaps:
+    strategy_name: "Observable capability gaps (paid ads with no gated asset; launch with no webinar/campaign visible; content/blog cadence dead >=90 days; exhibiting with no pre-event campaign)"
+    window: "n/a — collected during strike research, cited as evidence in copy"
+    scoring_role: evidence_only
+    weight: 0
+
+candidate_untested:   # sourced 2026-07-28 from SignalForce repo evaluation - IDEAS adopted, implementations OURS (rail-compliant); enter scoring only after user/weekly-review promotion
+  martech_replatform:
+    strategy_name: "Martech stack ceiling/replacement tells: JDs or news mention MAP migration/consolidation, 'marketing technology architect' hires, 'marketing analytics/data engineer' papering over platform limits, reverse-ETL tooling around the MAP"
+    window_hypothesis: "0-6 months from first tell"
+    detect: ["semantic read of JD snapshots we ALREADY capture daily (tool names Marketo/Eloqua/Pardot/HubSpot + migration/architect/modernization language)", "news sweep"]
+    weight: 2
+    backtest_status: untested
+    kill_status: active
+    note: "Zero new collection cost - mines existing snapshots. Live example on file: TR JD 'Marketing Operations Agent, Eloqua' (2026-07-28 snapshot). Fits RevOps + Demand Gen offers"
+  review_platform_intent:
+    strategy_name: "Account actively evaluating on review platforms (G2/TrustRadius category comparisons) - LEGITIMATE routes ONLY (polite public-page reads, official G2 Buyer Intent product); cookie-scraping expressly banned"
+    window_hypothesis: "0-90d from observed evaluation activity"
+    weight: 1
+    backtest_status: untested
+    kill_status: active
+  exec_rebuild_content:
+    strategy_name: "Marketing executive posts 'rebuilding marketing / stack replacement / marketing transformation' content on LinkedIn"
+    window_hypothesis: "0-60d from post"
+    detect: ["RETIRED 2026-08-24 (was the Clay LinkedIn lane; Clay removed by user order) - manual/attended only"]
+    weight: 1
+    backtest_status: untested
+    kill_status: active

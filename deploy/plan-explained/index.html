@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The plan, explained simply</title>
+<style>
+  :root {
+    --ink: #26221c;
+    --ink-soft: #5c554a;
+    --paper: #faf7f2;
+    --paper-dim: #f1ede4;
+    --accent: #1f5f45;
+    --accent-warm: #b4531f;
+    --rule: #e2dcd2;
+    --sans: 'Avenir Next', 'Trebuchet MS', Verdana, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Charter, Georgia, 'Times New Roman', serif;
+    font-size: 18.5px;
+    line-height: 1.62;
+  }
+  .page { max-width: 1060px; margin: 0 auto; padding: 0 36px; }
+  .narrow { max-width: 720px; }
+
+  /* ---------- header ---------- */
+  header { padding: 70px 0 40px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: end; }
+  header h1 { font-size: 46px; line-height: 1.1; font-weight: 700; letter-spacing: -0.5px; }
+  header p.sub { margin-top: 16px; font-size: 19px; color: var(--ink-soft); font-style: italic; }
+  header .thread {
+    padding: 22px 24px;
+    border-left: 3px solid var(--accent);
+    background: var(--paper-dim);
+    font-size: 19px; line-height: 1.5;
+  }
+  header .thread strong { color: var(--accent); }
+
+  /* ---------- sections ---------- */
+  section { padding: 42px 0 10px; border-top: 1px solid var(--rule); margin-top: 40px; }
+  .kicker {
+    font-family: var(--sans);
+    font-size: 13px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 8px;
+  }
+  section h2 { font-size: 29px; line-height: 1.2; letter-spacing: -0.3px; margin-bottom: 20px; }
+  p { margin-bottom: 16px; max-width: 780px; }
+  p.lead { font-size: 21px; }
+  .pull { margin: 26px 0; font-size: 25px; line-height: 1.4; font-weight: 700; }
+  .pull span { border-bottom: 3px solid var(--accent); padding-bottom: 2px; }
+
+  /* ---------- 3% blocks ---------- */
+  .market { display: flex; flex-wrap: wrap; gap: 5px; margin: 24px 0 8px; max-width: 780px; }
+  .market i { width: 22px; height: 22px; background: #ddd6c9; border-radius: 2px; }
+  .market i.hot { background: var(--accent-warm); }
+  .market-caption { font-family: var(--sans); font-size: 13.5px; color: var(--ink-soft); margin-bottom: 18px; }
+  .market-caption b { color: var(--accent-warm); }
+
+  /* ---------- two ideas: side by side ---------- */
+  .ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 8px; }
+  .ideas h3 { font-size: 21px; margin-bottom: 10px; }
+
+  /* ---------- team explosion diagram ---------- */
+  .explode { margin: 26px 0 10px; display: flex; align-items: center; gap: 22px; }
+  .explode .logo {
+    font-family: var(--sans); font-weight: 700; font-size: 15px;
+    border: 2px solid var(--ink); padding: 14px 18px; background: var(--paper);
+    white-space: nowrap;
+  }
+  .explode .arrow { font-size: 26px; color: var(--ink-soft); }
+  .explode .teams { display: flex; flex-direction: column; gap: 7px; }
+  .explode .team {
+    font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+    border-left: 3px solid var(--accent); background: var(--paper-dim);
+    padding: 7px 12px;
+  }
+  .explode .team span { color: var(--ink-soft); font-weight: 400; }
+  .diagram-caption { font-family: var(--sans); font-size: 13.5px; color: var(--ink-soft); margin-top: 10px; }
+
+  /* ---------- triggers two-column ---------- */
+  .trigger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 40px; margin: 10px 0 6px; }
+  .trig { padding: 13px 0; border-bottom: 1px solid var(--rule); }
+  .trig .t-name { font-weight: 700; }
+  .trig .window {
+    font-family: var(--sans); font-size: 11.5px; font-weight: 600; letter-spacing: 0.4px;
+    color: var(--paper); background: var(--accent); border-radius: 3px;
+    padding: 2px 7px; margin-left: 7px; white-space: nowrap; vertical-align: 2px;
+  }
+  .trig .t-why { color: var(--ink-soft); font-size: 16.5px; margin-top: 2px; }
+  h3.group {
+    font-family: var(--sans); font-size: 14.5px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; margin: 30px 0 4px;
+  }
+
+  /* ---------- rules 3-across ---------- */
+  .rules { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin: 20px 0 10px; }
+  .rule-card { border-top: 3px solid var(--ink); padding-top: 14px; }
+  .rule-card .n {
+    font-family: var(--sans); font-weight: 700; font-size: 26px; color: var(--accent);
+  }
+  .rule-card b { display: block; margin: 4px 0 4px; }
+  .rule-card p { font-size: 16.5px; color: var(--ink-soft); margin: 0; }
+
+  /* ---------- FLOWCHART band ---------- */
+  .flowband {
+    background: var(--ink); color: #f3efe7;
+    margin: 50px -36px 0; padding: 44px 36px 40px;
+  }
+  .flowband .inner { max-width: 1060px; margin: 0 auto; }
+  .flowband .kicker { color: #f0b27d; }
+  .flowband h2 { color: #f3efe7; font-size: 27px; margin-bottom: 26px; }
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .step { flex: 1; min-width: 118px; display: flex; align-items: center; }
+  .box {
+    flex: 1;
+    border: 1.5px solid #6b6459; border-radius: 4px;
+    padding: 12px 12px 11px; background: #322d25;
+  }
+  .box .s-name { font-family: var(--sans); font-weight: 700; font-size: 14px; letter-spacing: 0.5px; }
+  .box .s-what { font-size: 13.5px; color: #b8b0a2; line-height: 1.45; margin-top: 4px; }
+  .box.human { border-color: #f0b27d; background: #3d3225; }
+  .box.human .s-name { color: #f0b27d; }
+  .flow .arr { padding: 0 8px; color: #8a8172; font-size: 20px; align-self: center; }
+  .flow-note {
+    margin-top: 20px; display: flex; gap: 30px; flex-wrap: wrap;
+    font-family: var(--sans); font-size: 13px; color: #b8b0a2;
+  }
+  .flow-note b { color: #f3efe7; }
+  .loopline { margin-top: 14px; font-family: var(--sans); font-size: 13px; color: #f0b27d; }
+
+  /* ---------- tier ladder ---------- */
+  .tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 22px 0 8px; }
+  .tier { border: 1px solid var(--rule); border-top-width: 4px; padding: 12px 14px; background: #fff; }
+  .tier.strike { border-top-color: var(--accent-warm); }
+  .tier.seq { border-top-color: var(--accent); }
+  .tier.watch { border-top-color: #8a8172; }
+  .tier.skip { border-top-color: #ccc3b3; }
+  .tier .t-label { font-family: var(--sans); font-weight: 700; font-size: 14px; letter-spacing: 0.6px; }
+  .tier .t-def { font-size: 14.5px; color: var(--ink-soft); margin-top: 4px; line-height: 1.45; }
+
+  /* ---------- proof ---------- */
+  section.proof { border-top: 3px solid var(--accent-warm); }
+  section.proof .kicker { color: var(--accent-warm); }
+  .proof-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 44px; align-items: start; }
+  ul.evidence { list-style: none; margin: 6px 0 18px; }
+  ul.evidence li { padding: 11px 0 11px 18px; border-left: 3px solid var(--accent-warm); margin-bottom: 11px; }
+  .verdict { background: var(--ink); color: #f3efe7; padding: 22px 26px; font-size: 18.5px; line-height: 1.5; }
+  .verdict strong { color: #f0b27d; }
+  .mini-timeline { margin-top: 20px; border-left: 2px solid var(--rule); padding-left: 18px; }
+  .mini-timeline .mt { margin-bottom: 14px; position: relative; }
+  .mini-timeline .mt::before {
+    content: ''; position: absolute; left: -24px; top: 7px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent-warm);
+  }
+  .mini-timeline .mt b { font-family: var(--sans); font-size: 13px; letter-spacing: 0.5px; display: block; color: var(--accent-warm); }
+  .mini-timeline .mt span { font-size: 16px; }
+
+  /* ---------- email anatomy ---------- */
+  .anatomy { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 20px 0 8px; border: 1px solid var(--rule); }
+  .layer { padding: 14px 16px; border-right: 1px solid var(--rule); background: #fff; }
+  .layer:last-child { border-right: none; }
+  .layer b { font-family: var(--sans); font-size: 13px; letter-spacing: 0.5px; color: var(--accent); display: block; margin-bottom: 4px; }
+  .layer span { font-size: 14.5px; color: var(--ink-soft); line-height: 1.45; display: block; }
+
+  /* ---------- email examples ---------- */
+  .emails { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin: 14px 0 10px; }
+  .email { border-left: 3px solid var(--accent); background: #fff; padding: 14px 16px; }
+  .email .e-meta {
+    font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+  }
+  .email p { font-size: 15px; line-height: 1.55; color: var(--ink); margin-bottom: 10px; max-width: none; }
+  .email p:last-child { margin-bottom: 0; }
+
+  /* ---------- SDR section ---------- */
+  ul.morning { list-style: none; margin: 6px 0 14px; }
+  ul.morning li { padding: 9px 0 9px 24px; position: relative; }
+  ul.morning li::before {
+    content: ''; position: absolute; left: 5px; top: 18px;
+    width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+  }
+  /* ---------- speed strip ---------- */
+  .speed { display: flex; align-items: center; gap: 0; margin: 22px 0 6px; flex-wrap: wrap; }
+  .speed .touch {
+    font-family: var(--sans); font-size: 13.5px; font-weight: 600;
+    border: 1.5px solid var(--accent); border-radius: 20px; padding: 8px 16px; background: #fff;
+  }
+  .speed .plus { padding: 0 10px; color: var(--ink-soft); font-size: 18px; }
+  .speed .equals { padding: 0 14px; font-size: 18px; color: var(--ink-soft); }
+  .speed .result { font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--accent-warm); }
+
+  /* ---------- numbers ---------- */
+  .bars { margin: 22px 0; max-width: 780px; }
+  .bar { display: flex; align-items: baseline; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--rule); }
+  .bar .num { font-family: var(--sans); font-size: 29px; font-weight: 700; color: var(--accent); min-width: 92px; text-align: right; }
+
+  /* ---------- decisions ---------- */
+  ol.decisions { list-style: none; margin: 6px 0 20px; max-width: 780px; }
+  ol.decisions li { margin-bottom: 18px; padding-left: 4px; }
+  ol.decisions li strong { color: var(--accent); }
+
+  /* ---------- risks ---------- */
+  .risks p { max-width: 900px; }
+
+  /* ---------- footer weeks ---------- */
+  footer { margin-top: 56px; border-top: 1px solid var(--rule); padding: 38px 0 80px; }
+  footer .f-label { font-family: var(--sans); font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+  .weekline { display: flex; gap: 0; margin-top: 20px; flex-wrap: wrap; }
+  .wk { flex: 1; min-width: 150px; border-top: 3px solid var(--accent); margin-right: 14px; padding-top: 10px; }
+  .wk b { font-family: var(--sans); font-size: 13px; letter-spacing: 0.6px; display: block; }
+  .wk span { font-size: 15px; color: var(--ink-soft); line-height: 1.45; display: block; margin-top: 3px; }
+
+  @media (max-width: 900px) {
+    header, .ideas, .proof-grid, .trigger-grid { grid-template-columns: 1fr; }
+    .rules, .tiers, .anatomy { grid-template-columns: 1fr 1fr; }
+    .emails { grid-template-columns: 1fr; }
+    .flowband { margin: 50px -24px 0; padding: 36px 24px; }
+    .page { padding: 0 24px; }
+  }
+  @media print {
+    body { font-size: 12pt; }
+    .flowband { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
+    section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div>
+    <h1>The plan, explained simply</h1>
+    <p class="sub">A walkthrough of the trigger-based outbound system. Meant to be read and discussed, not filed away.</p>
+  </div>
+  <div class="thread">
+    At any moment, only about <strong>5% of a market is ready to buy</strong>. This system exists to find that 5% inside accounts we already chose &mdash; and get there while the door is open.
+  </div>
+</header>
+
+<section>
+  <div class="kicker">01</div>
+  <h2>What's broken today</h2>
+  <p class="lead">Outbound as most teams run it: build a big list, write a decent template, send a lot of email, hope.</p>
+  <p>Reply rates keep falling because every inbox on earth gets the same thing, often written by the same AI tools. And blasting the 95% who aren't ready doesn't just waste effort &mdash; it burns the domain and the brand for the day they <em>are</em> ready.</p>
+
+  <div class="market">
+    <i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="hot"></i><i class="hot"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+  <div class="market-caption">100 buyers in a market. <b>The orange five</b> are ready right now. Everyone's template blast goes to all 100. Our system only spends effort where it's orange &mdash; and knows <em>why</em> it's orange.</div>
+
+  <p>Everything below is machinery for one sentence:</p>
+  <div class="pull"><span>Reach the right team, for a real reason, while the window is still open.</span></div>
+</section>
+
+<section>
+  <div class="kicker">02</div>
+  <h2>The two ideas everything sits on</h2>
+  <div class="ideas">
+    <div>
+      <h3>Teams, not companies</h3>
+      <p>Our accounts are big. At a company with thousands of people, &ldquo;VP Marketing&rdquo; exists many times &mdash; one per product line, per region, per acquired brand, each with their own budget and problems. An email aimed at &ldquo;ServiceNow&rdquo; lands nowhere. An email aimed at the Armis marketing team, months after the acquisition closed, about the exact mess acquisitions create &mdash; lands.</p>
+      <div class="explode">
+        <div class="logo">ServiceNow<br><span style="font-weight:400; font-size:12px; color:var(--ink-soft);">1 row in our list</span></div>
+        <div class="arrow">&rarr;</div>
+        <div class="teams">
+          <div class="team">Armis marketing <span>&middot; post-acquisition</span></div>
+          <div class="team">Security product marketing</div>
+          <div class="team">Security demand gen</div>
+          <div class="team">EMEA / APJ field marketing</div>
+          <div class="team">Vertical marketing teams</div>
+        </div>
+      </div>
+      <div class="diagram-caption">25 accounts &rarr; 100+ real targets. Not extra work &mdash; the actual market becoming visible.</div>
+    </div>
+    <div>
+      <h3>Timing is detectable</h3>
+      <p>People hire an agency when something just changed: a new boss, a market launch, a merger, a big event coming up, goals that outgrew the team. Almost all of these changes leave public traces, and most traces are free to watch daily.</p>
+      <p>So we don't guess who's ready. We know, <strong>with a date on it</strong> &mdash; and just as important, we know when a window has <em>closed</em>, so nobody wastes a week on a dead one.</p>
+      <p>The windows we spot for later (an event in November, a platform launch &ldquo;coming months&rdquo;) go on a reminder calendar. That calendar compounds: every future window is a meeting attempt already scheduled.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">03</div>
+  <h2>What we watch, and why each one means money</h2>
+  <p>Every trigger is a plain question: <em>why would this team pay an agency right now?</em> Each has a time window. Outside the window it's worth nothing, and the system treats it as nothing.</p>
+
+  <h3 class="group">The strong ones &mdash; can start a play</h3>
+  <div class="trigger-grid">
+    <div class="trig"><span class="t-name">New marketing leader took over</span><span class="window">their day 30&ndash;90</span>
+      <div class="t-why">New leaders don't trust what they inherited and need wins before their plans lock in.</div></div>
+    <div class="trig"><span class="t-name">Hiring several marketers at once</span><span class="window">while jobs open</span>
+      <div class="t-why">Goals just outran the team. An agency is capacity without headcount politics.</div></div>
+    <div class="trig"><span class="t-name">Marketing job open 60+ days or reposted</span><span class="window">while it stays open</span>
+      <div class="t-why">Budget exists; the work isn't happening.</div></div>
+    <div class="trig"><span class="t-name">Acquisition (either direction)</span><span class="window">up to 9 months post-close</span>
+      <div class="t-why">Two marketing teams, one brand mess, campaigns that can't stop running.</div></div>
+    <div class="trig"><span class="t-name">Job post says &ldquo;manage agencies / vendors&rdquo;</span><span class="window">while req open</span>
+      <div class="t-why">They wrote down that they'll pay external partners.</div></div>
+    <div class="trig"><span class="t-name">Past contact landed at a target account</span><span class="window">their first months</span>
+      <div class="t-why">Warm beats cold, always. We keep the list and watch where people go.</div></div>
+    <div class="trig"><span class="t-name">Old lost deal's account lit up again</span><span class="window">while cluster live</span>
+      <div class="t-why">We know why it died last time. New leader + new hiring means that reason may be gone.</div></div>
+    <div class="trig"><span class="t-name">Job posts read for the problem, not the keyword</span><span class="window">always on</span>
+      <div class="t-why">A job post is a company describing, in public, a problem it will pay a salary to fix. We quote it back.</div></div>
+  </div>
+
+  <h3 class="group">The timing ones &mdash; we can be early on purpose</h3>
+  <div class="trigger-grid">
+    <div class="trig"><span class="t-name">Exhibiting at a big conference</span><span class="window">8&ndash;14 weeks before</span>
+      <div class="t-why">Event money is spent 2&ndash;3 months out. Two weeks before, the signal is worthless.</div></div>
+    <div class="trig"><span class="t-name">Product launch &middot; new region &middot; rebrand &middot; analyst placement</span><span class="window">each has a date</span>
+      <div class="t-why">Each opens a spend window we can compute in advance and put on the calendar.</div></div>
+  </div>
+
+  <h3 class="group">The ones we make ourselves</h3>
+  <div class="trigger-grid">
+    <div class="trig"><span class="t-name">LinkedIn engagement at target accounts</span>
+      <div class="t-why">Who engages with demand-gen content &mdash; pulled cleanly through Clay, no login tricks, no risk to anyone's account.</div></div>
+    <div class="trig"><span class="t-name">Our own tracked assets</span>
+      <div class="t-why">Every send offers a useful piece of work behind a link that shows who opened it, how long they read, and whether they forwarded it internally. A forward = a new buying-group member raising their hand. Intent data we own.</div></div>
+  </div>
+
+  <p style="margin-top:18px;"><strong>Deliberately not used:</strong> bought intent feeds (everyone has them; they point at the company, not the team), Reddit and community listening, visitor tracking on our own site (not enough traffic to mean anything).</p>
+</section>
+
+<section>
+  <div class="kicker">04</div>
+  <h2>The honesty rules</h2>
+  <div class="rules">
+    <div class="rule-card"><span class="n">1</span><b>One trigger alone rarely sends an email</b>
+      <p>Two independent triggers on the same team, both in-window, is the bar for a real play. One trigger = sequence quietly, or watch with a reminder date.</p></div>
+    <div class="rule-card"><span class="n">2</span><b>Every claim traces to evidence</b>
+      <p>A quote from their job post, a date from their press release. If the &ldquo;why now&rdquo; reads generic, the play gets downgraded &mdash; not decorated.</p></div>
+    <div class="rule-card"><span class="n">3</span><b>A human approves every send</b>
+      <p>The machine researches, drafts, and queues. A person reads and clicks. Nothing reaches a prospect on autopilot.</p></div>
+  </div>
+</section>
+
+<div class="flowband">
+  <div class="inner">
+    <div class="kicker">The daily loop</div>
+    <h2>What actually happens every morning</h2>
+    <div class="flow">
+      <div class="step"><div class="box"><div class="s-name">1 &middot; WATCH</div><div class="s-what">Job feeds, press, event lists, people moves &mdash; free, across every account</div></div><div class="arr">&rarr;</div></div>
+      <div class="step"><div class="box"><div class="s-name">2 &middot; SCORE</div><div class="s-what">Triggers attach to a team, get window-checked, stack up</div></div><div class="arr">&rarr;</div></div>
+      <div class="step"><div class="box"><div class="s-name">3 &middot; BUILD</div><div class="s-what">Right people found (Clay), why-now written, emails drafted</div></div><div class="arr">&rarr;</div></div>
+      <div class="step"><div class="box human"><div class="s-name">4 &middot; HUMAN GATE</div><div class="s-what">A person reads, edits, approves or kills. Always.</div></div><div class="arr">&rarr;</div></div>
+      <div class="step"><div class="box"><div class="s-name">5 &middot; SEND</div><div class="s-what">Email sequence + LinkedIn connect, from warmed domains</div></div><div class="arr">&rarr;</div></div>
+      <div class="step"><div class="box"><div class="s-name">6 &middot; CATCH</div><div class="s-what">Replies classified in minutes, asset views alert the SDR to call</div></div></div>
+    </div>
+    <div class="loopline">&#8634; &nbsp;7 &middot; LEARN &mdash; weekly, every trigger type is judged on meetings booked. Losers get their weight cut, then killed. The loop feeds back into step 2.</div>
+    <div class="flow-note">
+      <div><b>Steps 1&ndash;3, 6:</b> the machine</div>
+      <div><b>Step 4 + every call:</b> a human</div>
+      <div><b>Cost of steps 1&ndash;2:</b> roughly zero</div>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="kicker">04&frac12;</div>
+  <h2>Where a team lands after scoring</h2>
+  <div class="tiers">
+    <div class="tier strike"><div class="t-label">STRIKE</div><div class="t-def">2+ triggers, in-window, different sources. Full play within 24h, SDR on it this week.</div></div>
+    <div class="tier seq"><div class="t-label">SEQUENCE</div><div class="t-def">1 strong trigger. Emails go, no SDR call time until they engage.</div></div>
+    <div class="tier watch"><div class="t-label">WATCH</div><div class="t-def">Something's coming but the window isn't open. Reminder date set. This list compounds.</div></div>
+    <div class="tier skip"><div class="t-label">NOTHING</div><div class="t-def">Logged, moved past. Volume is not the goal.</div></div>
+  </div>
+</section>
+
+<section class="proof">
+  <div class="kicker">05 &middot; The proof</div>
+  <h2>A real example, run by hand yesterday</h2>
+  <div class="proof-grid">
+    <div>
+      <p>We ran one account through the whole thing manually &mdash; zero paid tools, about 35 minutes: <strong>TradeStation</strong>.</p>
+      <ul class="evidence">
+        <li>On <strong>June 10</strong> they launched a whole European company: Amsterdam entity, licensed for <strong>30 countries</strong>, brand-new president (Peter Comstock).</li>
+        <li>Their careers page, checked live: <strong>24 open jobs &mdash; not one in marketing.</strong> Launching in 30 countries with no visible demand team.</li>
+        <li>Comstock is ~7 weeks into the job &mdash; right inside the new-leader window.</li>
+      </ul>
+      <div class="verdict">
+        Verdict: <strong>strike now</strong>, on the Europe team specifically &mdash; window closes ~December. Three emails already drafted, offering a short playbook on how US trading firms built European demand in year one. Soft ask, useful thing, tracked link.
+      </div>
+    </div>
+    <div>
+      <div class="mini-timeline">
+        <div class="mt"><b>JAN 6</b><span>New flagship platform announced &mdash; full launch &ldquo;coming months.&rdquo; Window not open yet &rarr; on the reminder calendar.</span></div>
+        <div class="mt"><b>JUN 10</b><span>Europe launch + new president &rarr; two live triggers on one team.</span></div>
+        <div class="mt"><b>JUL 27</b><span>Careers page checked live: zero marketing hires for a 30-country launch. That line goes in the email.</span></div>
+        <div class="mt"><b>~DEC</b><span>Expansion window closes. After that, this play is worth nothing &mdash; which is exactly why timing is the whole system.</span></div>
+      </div>
+      <p style="margin-top:18px; font-size:16.5px; color:var(--ink-soft);">One account, one sitting, no tools. The daily system does this across every account, every morning &mdash; and the US team's &ldquo;watch&rdquo; reminder fires automatically the day their platform launch is announced.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">06</div>
+  <h2>What the emails look like</h2>
+  <p>Never &ldquo;saw you went to Harvard.&rdquo; Never a meeting ask on the first touch. Four layers, in order, every time:</p>
+  <div class="anatomy">
+    <div class="layer"><b>1 &middot; INSIGHT</b><span>Something true and specific we found: &ldquo;24 open roles, none in marketing, while launching in 30 countries.&rdquo;</span></div>
+    <div class="layer"><b>2 &middot; PROBLEM</b><span>What usually breaks in exactly this situation &mdash; we've seen it before, we name it.</span></div>
+    <div class="layer"><b>3 &middot; PROOF</b><span>One line. Not a stat dump &mdash; just enough to show we've done this.</span></div>
+    <div class="layer"><b>4 &middot; SOFT ASK</b><span>&ldquo;Want me to send it over?&rdquo; A useful artifact, not a calendar link. Low friction to say yes.</span></div>
+  </div>
+  <p style="margin-top:16px;">Why the soft ask: saying &ldquo;yes, send it&rdquo; is easy. Then <em>opening and reading it</em> takes real effort &mdash; and whoever spends that effort has qualified themselves. That's when the phone call happens, and it's a warm one.</p>
+
+  <h3 class="group">The actual TradeStation drafts, trimmed</h3>
+  <div class="emails">
+    <div class="email">
+      <div class="e-meta">Email 1 &middot; day 0 &middot; subj: <em>year one in Europe</em></div>
+      <p>Peter &mdash; congrats on the June 10 launch. An AFM license covering 30 EEA markets on day one is a serious footprint.</p>
+      <p>The pattern when US platforms enter Europe: the product lands months before the demand engine does &mdash; your careers page shows 24 open roles and zero marketing seats.</p>
+      <p>We wrote up how the last wave of US trading platforms handled EEA year one &mdash; the three mistakes and the 90-day sequence that avoids them. Want me to send it over?</p>
+    </div>
+    <div class="email">
+      <div class="e-meta">Email 2 &middot; +4 days &middot; subj: <em>cold-start pipeline</em></div>
+      <p>Peter &mdash; one datapoint from the playbook I mentioned: the platforms that won early EEA pipeline sequenced institutional demand <em>before</em> retail brand spend &mdash; the reverse of their US playbook.</p>
+      <p>It's a 10-minute read. Worth a look before Q4 planning locks?</p>
+    </div>
+    <div class="email">
+      <div class="e-meta">Email 3 &middot; +9 days &middot; subj: <em>timing</em></div>
+      <p>Peter &mdash; if the European demand engine is already handled internally, ignore me with a clear conscience.</p>
+      <p>If it's still on the &ldquo;after we hire&rdquo; list, the playbook is yours either way &mdash; it's the thinking we'd bring, free to steal. One word and I'll send it.</p>
+    </div>
+  </div>
+  <div class="diagram-caption">Every claim in email 1 traces to something verified that morning. No meeting ask anywhere &mdash; the playbook does the asking.</div>
+</section>
+
+<section>
+  <div class="kicker">07</div>
+  <h2>What the SDR sees (no new tools)</h2>
+  <p><strong>Claude Code</strong> watches and writes. <strong>Clay</strong> finds and verifies people. <strong>HubSpot</strong> is where everything lands. An SDR's morning:</p>
+  <ul class="morning">
+    <li>Slack alert: <em>&ldquo;Strike: TradeStation Europe. New market launch + new president, window closes December. Accept within 24h.&rdquo;</em></li>
+    <li>The HubSpot record already holds everything: the why-now paragraph, evidence links, the 5&ndash;8 right people, drafted emails as a note. Review, tweak, approve, go.</li>
+    <li>Someone replies or opens the asset &rarr; <em>&ldquo;call this person now, here's the number, here's what they just read.&rdquo;</em></li>
+  </ul>
+  <p><strong>The SDR does none of the research and all of the selling.</strong> The machine watches, drafts, and alerts; the human approves every send, makes every call, and owns the fast-reply clock.</p>
+  <div class="speed">
+    <div class="touch">email reply</div><div class="plus">+</div>
+    <div class="touch">LinkedIn connect</div><div class="plus">+</div>
+    <div class="touch">call</div><div class="plus">+</div>
+    <div class="touch">the asset</div>
+    <div class="equals">=</div><div class="result">4 touches inside the hour<br>on anything warm</div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">08</div>
+  <h2>How we'll know it's working</h2>
+  <p>Judged on <strong>meetings, not replies</strong> &mdash; replies flatter tactics that book nothing.</p>
+  <div class="bars">
+    <div class="bar"><div class="num">75+</div><div>real teams mapped from the first 25 accounts &mdash; fewer means the core idea is off, and we stop and look</div></div>
+    <div class="bar"><div class="num">15+</div><div>strike-worthy timing windows found in the first month</div></div>
+    <div class="bar"><div class="num">3&times;</div><div>reply rate on strikes vs. our current outbound baseline</div></div>
+    <div class="bar"><div class="num">Wk 6</div><div>first meetings booked from strikes</div></div>
+  </div>
+  <p>Kill rule: two weeks of sends with nothing back halves a trigger's weight; four weeks kills it. And in week 2, every trigger gets checked against our own past wins and losses before we trust it at all.</p>
+</section>
+
+<section>
+  <div class="kicker">09</div>
+  <h2>What it costs</h2>
+  <p>Almost the whole watching-and-thinking layer is free: public job feeds, press releases, event exhibitor lists, Claude Code we already pay for, Slack webhooks.</p>
+  <p>Paid parts, all capped: Clay credits only for contact-finding on active plays (tens of dollars per batch, not hundreds) &middot; a sending tool in the $100&ndash;200/month range plus a few extra domains &middot; optionally a small LinkedIn ads budget aimed only at accounts we're actively striking &mdash; so the people we're emailing also see our proof content that month. Sales and marketing pointed at the same accounts, on purpose.</p>
+</section>
+
+<section>
+  <div class="kicker">10</div>
+  <h2>Four decisions needed &mdash; none slow the build</h2>
+  <ol class="decisions">
+    <li><strong>1 &middot; Conflict lines.</strong> Which companies are off-limits because of current client relationships. Sign-off before anything sends &mdash; one wrong email can cost a whole logo.</li>
+    <li><strong>2 &middot; Sending setup.</strong> Does our HubSpot tier include sequences, or do we buy a sender? Either way, new domains get bought day one &mdash; warming takes 2&ndash;3 weeks.</li>
+    <li><strong>3 &middot; Europe.</strong> Legal basis per region before we email anyone in the EU. The TradeStation play may literally depend on this.</li>
+    <li><strong>4 &middot; Who owns the alerts.</strong> A named person on the strike queue and the fast-reply clock. Alerts into an empty room book nothing.</li>
+  </ol>
+</section>
+
+<section class="risks">
+  <div class="kicker">11</div>
+  <h2>What could go wrong, said out loud</h2>
+  <p><strong>The triggers could be wrong for our market.</strong> That's why weights start as guesses, get backtested against our own wins and losses in week 2, and get killed by the weekly numbers. The system is built to be wrong quickly and cheaply.</p>
+  <p><strong>Every number in the source videos and newsletters is self-reported by someone selling something.</strong> We copied their mechanics, not their claims. Our bar is our own baseline times three &mdash; not somebody's YouTube number.</p>
+  <p><strong>Volume will feel low at first.</strong> That's the design. Ten sharp plays a week beat a thousand sprays, and the watch list compounds: every future window we spot is a meeting attempt already scheduled.</p>
+  <p><strong>It needs the manual reps first.</strong> Weeks 1 and 2 are deliberately hands-on. Automating an unproven motion just ships mistakes faster.</p>
+</section>
+
+<footer>
+  <div class="f-label">SIX WEEKS FROM A YES</div>
+  <div class="weekline">
+    <div class="wk"><b>WEEK 1</b><span>Map the teams. Start daily job-post snapshots. Interview our own closers for trigger ideas.</span></div>
+    <div class="wk"><b>WEEK 2</b><span>Triggers live. First hand-run plays. Backtest against our own won/lost history.</span></div>
+    <div class="wk"><b>WEEK 3</b><span>HubSpot plumbing, reply handling, the tracked assets built.</span></div>
+    <div class="wk"><b>WEEK 4</b><span>25-play pilot &mdash; every send human-approved.</span></div>
+    <div class="wk"><b>WEEKS 5&ndash;6</b><span>Kill what didn't work, automate what did, expand the account list.</span></div>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

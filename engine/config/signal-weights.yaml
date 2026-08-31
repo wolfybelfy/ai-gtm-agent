@@ -1,0 +1,81 @@
+# Signal library — weights and action windows (from build spec v3, module 2)
+# RULE: a signal with no cell_id attribution is discarded.
+# RULE: outside its action window a signal scores ZERO regardless of weight.
+# recency_decay: <=14d 1.0 | <=30d 0.8 | <=60d 0.5 | <=90d 0.25 | >90d 0
+# All weights are HYPOTHESES until the closed-won backtest runs (module 9).
+
+class_1_budget_proven:            # highest value: budget approved, pain written down, self-service failed
+  stale_marketing_req_60d:
+    weight: 10
+    window: "while req remains open"
+    detect: "same req present in >=60 consecutive daily snapshots"
+  req_reposted:
+    weight: 10
+    window: "0-30d from repost"
+    detect: "req disappears then reappears (same/similar title, same cell)"
+  three_plus_open_reqs_one_cell:
+    weight: 8
+    window: "while open"
+  jd_agency_language:
+    weight: 8
+    window: "while req open"
+    detect: "JD mentions managing agencies/vendors/partners"
+  jd_martech_migration:
+    weight: 7
+    window: "0-120d"
+    detect: "JD names a platform migration or new rollout"
+  leader_departed_no_backfill_45d:
+    weight: 8
+    window: "45-180d after departure"
+
+class_2_dateable_spikes:          # predictable in advance — the timing edge
+  acquisition_closed:
+    weight: 10
+    window: "0-9 months post-CLOSE (announcement starts watch; close starts clock; peak weeks 2-16)"
+  new_cell_leader:
+    weight: 9
+    window: "days 30-90 of tenure"
+  analyst_inclusion:
+    weight: 8
+    window: "0-8 weeks after publication"
+  major_conference_exhibit:
+    weight: 8
+    window: "8-14 weeks BEFORE event date (worthless at T-2w)"
+  product_launch_ga:
+    weight: 7
+    window: "-6 to +12 weeks"
+  regional_expansion:
+    weight: 7
+    window: "0-6 months"
+  rebrand_repositioning:
+    weight: 7
+    window: "0-6 months"
+  funding_round:
+    weight: 5                     # smaller-segment accounts only; commodity signal, everyone sees it
+    window: "0-90d"
+
+class_3_capability_gaps:          # evidence for the MESSAGE only — never fire alone
+  paid_ads_no_gated_asset: {weight: 5}
+  product_page_no_demand_capture: {weight: 4}
+  content_cadence_decay_90d: {weight: 4}
+  competitor_outspending: {weight: 4}
+  webinar_cadence_gap: {weight: 3}
+
+excluded:
+  - bought_intent_topics          # commodity feed; resolves to parent domain, not the cell that owns budget
+  - reddit_slack_community_listening   # rejected constraint — do not reintroduce
+  - first_party_website_intent    # our site has no ICP traffic; dead input
+
+tiering:
+  HOT:   ">=2 corroborating signals (different source AND mechanism), in-window, fit-veto pass -> SDR same day"
+  WARM:  "1 strong signal in-window -> sequence, no SDR time yet"
+  WATCH: "weak in-window OR strong out-of-window -> monitor; set retrigger_date from window math"
+  SKIP:  "fit veto fail -> permanent"
+
+fit_veto:                          # hard binaries, checked before any scoring
+  - parent_account_not_in_tal
+  - cell_confidence_low
+  - no_budget_evidence
+  - client_competitor_conflict     # per config/conflict-rules.md — BLOCKING until signed
+  - active_opportunity_or_current_client_cell_or_suppression_window
+  - not_lawfully_contactable_in_region

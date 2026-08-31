@@ -1,0 +1,20 @@
+# Hard operational caps. Workflows must read this before spending anything.
+clay:
+  max_credits_per_run: 200        # ~one video benchmark: 172 credits ≈ $12 for 50 enriched leads (self-reported; verify against our own bills)
+  require_estimate_before_spend: true
+  test_batch_size: 10
+  prefer_byok_providers: true     # bring-your-own-key enrichments before Clay-credit enrichments
+
+volume:
+  max_new_contacts_sequenced_per_day: 25     # deliberately low; raise only after deliverability is verified
+  max_contacts_per_cell: 8
+  min_stagger_between_same_cell_sends_hours: 48
+  tier1_human_review: always                  # priority accounts + existing-logo siblings: every send reviewed
+
+suppression:
+  contact_cooldown_days: 90
+  check_hubspot_before_any_list_entry: true
+
+runtime:
+  daily_snapshot_hour_local: 7
+  watch_retrigger_check: daily

@@ -1,0 +1,67 @@
+# Local agent and browser state
+.claude/settings.local.json
+.playwright-mcp/
+.worktrees/
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.token
+*.key
+*.pem
+*credential*
+*secret*
+
+# Python and generic build caches
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+
+# GTM operational and identifying data
+audiences/
+trigger-system/data/accounts/**
+!trigger-system/data/accounts/.gitkeep
+trigger-system/data/engagement/**
+!trigger-system/data/engagement/.gitkeep
+trigger-system/data/exports/**
+!trigger-system/data/exports/.gitkeep
+trigger-system/data/graph/**
+!trigger-system/data/graph/.gitkeep
+trigger-system/data/imports/**
+!trigger-system/data/imports/.gitkeep
+trigger-system/data/reports/**
+!trigger-system/data/reports/.gitkeep
+trigger-system/data/snapshots/**
+!trigger-system/data/snapshots/.gitkeep
+trigger-system/data/stack-tells/**
+!trigger-system/data/stack-tells/.gitkeep
+trigger-system/data/verify/**
+!trigger-system/data/verify/.gitkeep
+trigger-system/context/ae-calls/**
+!trigger-system/context/ae-calls/.gitkeep
+trigger-system/plays/*/buying-group.csv
+trigger-system/staging/alerts/**
+!trigger-system/staging/alerts/.gitkeep
+!trigger-system/staging/alerts/sent/
+!trigger-system/staging/alerts/sent/.gitkeep
+trigger-system/staging/enrich/*
+trigger-system/staging/hubspot/*
+trigger-system/staging/runtime/**
+!trigger-system/staging/runtime/.gitkeep
+!trigger-system/staging/hubspot/outbox/
+!trigger-system/staging/hubspot/outbox/.gitkeep
+trigger-system/logs/**
+!trigger-system/logs/.gitkeep
+trigger-system/deliverables/**
+!trigger-system/deliverables/.gitkeep
+trigger-system/_doc_work/**
+!trigger-system/_doc_work/.gitkeep
+trigger-system/briefs/**
+!trigger-system/briefs/.gitkeep
+trigger-system/plays/**
+!trigger-system/plays/.gitkeep
+
+# Local and dated operational backups
+*.bak-*

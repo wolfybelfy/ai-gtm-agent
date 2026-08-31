@@ -1,0 +1,11 @@
+﻿# SignalForce mined ideas (2026-07-28) - what we took, as OUR implementations
+Source: github.com/sami2919/SignalForce (MIT), quarantine-reviewed; codebase NOT integrated (3 rail violations - see BUILD-STATE decision log).
+
+1. THREE CANDIDATE TRIGGERS added to trigger-weights.yaml as untested: martech_replatform / review_platform_intent / exec_rebuild_content.
+2. STACK-TELL READING: infer an account's martech stack + pain from JD text we already snapshot (their MAP-migration ICP config is the recipe: tells like "marketing analytics engineer" hire = someone papering over a platform ceiling). Keyword lists worth adapting live in examples/map-migration/config.yaml (quarantine copy).
+3. BUYING-GROUP TRIAD: Champions (MOPs/demand-gen who feel pain) / Approvers [renamed "Decision-makers" in our system 2026-08-16 - no approval framing] (CMO/VPs who own budget) / Influencers (Head of Data - include DATA leaders in RevOps buying groups). Refine strike-build step 3 with this.
+4. ACCOUNT MATURITY STAGES: EVALUATING -> SCOPING -> MIGRATING -> OPTIMIZING per account per pain: sharper than binary in-window for slow signals; candidate field for teams.csv later.
+5. PLAYBOOK ANGLE-MAPPING pattern: signal_type + trigger_pattern -> named angle -> opener + proof-point template. Adopt the STRUCTURE for copy-rules once offer.md is COPY_READY (content stays ours/approved).
+6. SCORING MATH benchmark: strength x recency-decay (per-signal half-life days) x breadth multiplier (1.0/1.5/2.0/3.0 by unique source count). Our window+stacking rules cover this today; revisit if Phase 3 backtest wants continuous scores.
+7. DELIVERABILITY PROTOCOL checklist (for the Gate-2 owner at Phase 5): 3-5 secondary domains, 2-3 accounts each, 25-30/day/account cap (~450/day ceiling), SPF softfail + DKIM + DMARC quarantine->reject after 30 clean days, custom tracking CNAME, 5/15/30 weekly warmup ramp NEVER stopped, weekly MXToolbox blacklist + Google Postmaster (spam <0.1%), bounce thresholds 2%/5% pause rules. Matches and details our plan's deliverability gate.
+8. SERPAPI fallback for JS-shell careers pages - pending USER budget decision (logged 2026-07-28).

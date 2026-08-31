@@ -1,0 +1,177 @@
+<!doctype html>
+<!-- =====================================================================
+  PLAY SCORECARD TEMPLATE (user-confirmed 2026-08-20; card design adopted from
+  the "Veeam Play Scorecard" artifact, typography changed to Arial on user order).
+  RULES for every generated card:
+  - One card per play, self-contained (inline CSS only, no external resources).
+  - Fill every {{SLOT}}; delete nothing structural. Keep the CSS verbatim.
+  - Stripe: class "seq" (teal) for SEQUENCE, class "hot" (red) for STRIKE;
+    stripe right side = the most important date in plain words.
+  - Clocks: 1-2 rows, COMPUTED FROM REAL DATES on the build day (days left /
+    days empty / days until). Big number + plain-words reason. Never stale math.
+  - Avatar states: plain teal = go; "primary" (gold ring) = start here;
+    "wait" (amber) = timed/conditional hold; "hold" (red, struck) = do not
+    contact. The legend line always spells the states out - never color alone.
+    Every avatar title attribute carries name, role, and the exact instruction.
+  - Trust tags: only claims that are literally true from the play's evidence.
+  - NO system jargon anywhere (no trigger ids, tiers, wc-numbers, lane names).
+    Real dates. No prospect contact data (names + titles only - committed file).
+  - The details block quotes the primary source verbatim.
+  - links line: play folder path + built date; HubSpot pointer only when the
+    CRM card actually exists.
+===================================================================== -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ACCOUNT}} Play Card</title>
+<style>
+  :root{
+    --backdrop:#efece5; --card:#fdfcf9; --ink:#1c2b29; --muted:#66746f; --line:#e2ddd2;
+    --teal:#1f4e4a; --teal-ink:#f2f7f6;
+    --strike:#9c3b2c; --strike-ink:#fdf6f2;
+    --amber:#a86b0e; --amber-soft:#f7ecd6;
+    --good:#2e6b45; --good-soft:#e4f0e8;
+    --bad:#9c3b2c; --bad-soft:#f5e4df;
+    --shadow:0 1px 2px rgba(28,43,41,.08), 0 12px 32px rgba(28,43,41,.14);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --backdrop:#101514; --card:#1d2523; --ink:#e9e7e0; --muted:#95a3a0; --line:#33403d;
+      --teal:#82bcb4; --teal-ink:#142320;
+      --strike:#c4573f; --strike-ink:#fdf6f2;
+      --amber:#d9a34a; --amber-soft:#342a19;
+      --good:#7cc394; --good-soft:#203428;
+      --bad:#d98a7a; --bad-soft:#382320;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 36px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --backdrop:#101514; --card:#1d2523; --ink:#e9e7e0; --muted:#95a3a0; --line:#33403d;
+    --teal:#82bcb4; --teal-ink:#142320;
+    --strike:#c4573f; --strike-ink:#fdf6f2;
+    --amber:#d9a34a; --amber-soft:#342a19;
+    --good:#7cc394; --good-soft:#203428;
+    --bad:#d98a7a; --bad-soft:#382320;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 36px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--backdrop); color:var(--ink); margin:0; min-height:100vh;
+       display:flex; align-items:center; justify-content:center; padding:32px 16px;
+       font:14px/1.5 Arial,Helvetica,sans-serif;}
+  .card{width:100%; max-width:440px; background:var(--card); border:1px solid var(--line);
+        border-radius:12px; box-shadow:var(--shadow); overflow:hidden;}
+  .stripe{display:flex; justify-content:space-between; align-items:center; padding:8px 18px;
+          font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;}
+  .stripe.seq{background:var(--teal); color:var(--teal-ink)}
+  .stripe.hot{background:var(--strike); color:var(--strike-ink)}
+  .stripe .dot{display:inline-block; width:7px; height:7px; border-radius:50%;
+               background:currentColor; margin-right:7px; vertical-align:1px;
+               animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  @media (prefers-reduced-motion: reduce){ .stripe .dot{animation:none} }
+  .head{padding:16px 18px 0; display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+  .head h1{font:700 24px/1.15 Arial,Helvetica,sans-serif; margin:0; letter-spacing:-.2px; text-wrap:balance}
+  .owner{font-size:11.5px; color:var(--muted); text-align:right; white-space:nowrap}
+  .owner b{display:block; color:var(--ink); font-size:12.5px}
+  .gloss{padding:6px 18px 0; font-size:12.5px; color:var(--muted)}
+  .gloss b{color:var(--ink)}
+  .hero{margin:14px 18px 0; border:1px solid var(--line); border-radius:10px; overflow:hidden}
+  .clock{display:flex; align-items:center; gap:14px; padding:12px 14px}
+  .clock+.clock{border-top:1px solid var(--line)}
+  .clock .n{font:700 30px/1 Arial,Helvetica,sans-serif; font-variant-numeric:tabular-nums;
+            min-width:78px; text-align:center}
+  .clock .n small{display:block; font-size:10px; font-weight:600; color:var(--muted);
+                  text-transform:uppercase; letter-spacing:.1em}
+  .clock .t{font-size:12.5px}
+  .clock .t b{display:block; font-size:13px}
+  .clock .t span{color:var(--muted); font-size:12px}
+  .sec{padding:14px 18px 0}
+  .sec .lbl{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:7px}
+  .story div{display:flex; gap:9px; padding:3px 0; font-size:13px}
+  .story span:first-child{color:var(--teal); font-weight:700}
+  .ev{display:flex; gap:8px; flex-wrap:wrap}
+  .tag{font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:20px;
+       background:var(--good-soft); color:var(--good)}
+  .ppl{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+  .av{width:34px; height:34px; border-radius:50%; background:var(--teal); color:var(--card);
+      display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700}
+  .av.primary{outline:2px solid var(--amber); outline-offset:2px}
+  .av.wait{background:var(--amber-soft); color:var(--amber)}
+  .av.hold{background:var(--bad-soft); color:var(--bad); text-decoration:line-through}
+  .legend{font-size:11.5px; color:var(--muted); margin-top:7px}
+  .legend i{font-style:normal; color:var(--amber); font-weight:700}
+  .legend s{color:var(--bad)}
+  .approve{margin:16px 18px 0; background:var(--amber-soft); border:1px dashed var(--amber);
+           border-radius:8px; padding:12px 14px}
+  .approve .st{font-size:12.5px; font-weight:700; color:var(--amber)}
+  .approve .sub{font-size:11.5px; color:var(--muted); margin-top:2px}
+  details{margin:14px 0 0; border-top:1px solid var(--line)}
+  summary{cursor:pointer; padding:10px 18px; font-size:12px; color:var(--muted);
+          list-style:none; display:flex; justify-content:space-between}
+  summary::after{content:"\25BE"} details[open] summary::after{content:"\25B4"}
+  .detail{padding:0 18px 14px; font-size:12.5px}
+  .detail p{margin:0 0 8px}
+  .detail .q{font-style:italic; color:var(--muted)}
+  .links{padding:10px 18px 16px; display:flex; gap:14px; flex-wrap:wrap; align-items:baseline;
+         border-top:1px solid var(--line); font-size:12px}
+  .links code{color:var(--teal); font-weight:600; font-family:Consolas,Menlo,monospace; font-size:11.5px}
+  .links span{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="stripe {{seq|hot}}"><span><span class="dot"></span>{{New play ready | Hot account}}</span><span>{{most important date, plain words}}</span></div>
+  <div class="head">
+    <h1>{{ACCOUNT}}</h1>
+    <div class="owner">this account belongs to<b>{{OWNER}}</b></div>
+  </div>
+  <div class="gloss"><b>{{The angle in one bold sentence.}}</b> {{One more plain sentence of context.}}</div>
+  <div class="hero">
+    <div class="clock">
+      <div class="n">{{N}}<small>{{days left|days empty|days until}}</small></div>
+      <div class="t"><b>{{What the clock is}}</b>
+        <span>{{Why it matters, with the real dates.}}</span></div>
+    </div>
+    <!-- optional second .clock -->
+  </div>
+  <div class="sec">
+    <div class="lbl">One more thing we noticed</div>
+    <div class="story"><div><span>&#9656;</span><div>{{The supporting tell, pain point bolded.}}</div></div></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">Can we trust this? Can we act on it?</div>
+    <div class="ev">
+      <span class="tag">&#10003; {{source-of-truth claim}}</span>
+      <span class="tag">&#10003; {{data-freshness claim}}</span>
+      <span class="tag">&#10003; {{compliance claim}}</span>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="lbl">The {{N}} people this play talks to &middot; messages already written</div>
+    <div class="ppl">
+      <div class="av primary" title="{{Name — role. Main person: what they get}}">{{XX}}</div>
+      <div class="av" title="{{Name — role. What they get}}">{{XX}}</div>
+      <div class="av wait" title="{{Name — role. The exact hold condition}}">{{XX}}</div>
+      <div class="av hold" title="{{Name — role. Why never contacted}}">{{XX}}</div>
+    </div>
+    <div class="legend"><i>gold ring</i> = start here ({{first name, why}}) &middot; <i>amber</i> = {{hold meaning}} &middot; <s>red</s> = do not contact &middot; hover any face for details</div>
+  </div>
+  <div class="approve">
+    <div class="st">Ready to run — this is {{OWNER FIRST NAME}}'s play</div>
+    <div class="sub">{{What can go today vs what waits, in one or two sentences.}}</div>
+  </div>
+  <details>
+    <summary>Read the full story</summary>
+    <div class="detail">
+      <p>{{Primary source verbatim in a .q span, then the narrative in 3-5 sentences.}}</p>
+      <p>{{What happens next: re-scan cadence, upgrade condition, decay date.}}</p>
+    </div>
+  </details>
+  <div class="links">
+    <code>plays/{{play_id}}/</code>
+    <span>full drafts &amp; evidence &middot; card built {{Mon D YYYY}}{{ &middot; HubSpot pointer only if the card exists}}</span>
+  </div>
+</div>
+</body>
+</html>
