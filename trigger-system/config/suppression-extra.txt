@@ -1,0 +1,12 @@
+# Domains present in the original system but not in the supplied master TAL.
+avaya.com
+godaddy.com
+hexagon.com
+infor.com
+meltwater.com
+miro.com
+nextiva.com
+powerschool.com
+qualtrics.com
+trimble.com
+xerox.com
