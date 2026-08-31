@@ -153,21 +153,27 @@ if ($Auto) {
 }
 $playIds = @($playIds | Select-Object -Unique)
 
-# ---- suppression (rule 8: consulted by every path; absence = STOP, never silent) -----------
-$supFile = Join-Path $root 'staging\hubspot\suppression.csv'
-if (-not (Test-Path $supFile)) { Write-Host 'FATAL: staging\hubspot\suppression.csv missing - rule 8 forbids proceeding.'; exit 1 }
-$supLines = [IO.File]::ReadAllLines($supFile)
-$supPeople = @(); $supEmails = @()
-if ($supLines.Count -gt 1) {
-    $sHdr = (Split-CsvLine -Line $supLines[0]) | ForEach-Object { $_.Trim('"').Trim() }
-    $iEmail = [Array]::IndexOf($sHdr, 'email'); $iPerson = [Array]::IndexOf($sHdr, 'person')
+# ---- suppression (provider-neutral; absence of the domain baseline = STOP) ----------------
+$baselineFile = Join-Path $root 'config\suppression-baseline.csv'
+if (-not (Test-Path $baselineFile)) { Write-Host 'FATAL: config\suppression-baseline.csv missing - suppression-first policy forbids proceeding.'; exit 1 }
+$supFiles = @($baselineFile)
+$localSupFile = Join-Path $root 'staging\suppression-local.csv'
+if (Test-Path $localSupFile) { $supFiles += $localSupFile }
+$supPeople = @(); $supEmails = @(); $supDomains = @()
+foreach ($supFile in $supFiles) {
+    $supLines = [IO.File]::ReadAllLines($supFile)
+    if ($supLines.Count -le 1) { continue }
+    $sHdr = (Split-CsvLine -Line $supLines[0]) | ForEach-Object { $_.Trim('"').Trim().ToLower() }
+    $iEmail = [Array]::IndexOf($sHdr, 'email'); $iPerson = [Array]::IndexOf($sHdr, 'person'); $iSupDomain = [Array]::IndexOf($sHdr, 'domain')
     foreach ($sl in ($supLines | Select-Object -Skip 1)) {
         if ($sl.Trim() -eq '') { continue }
         $sf = Split-CsvLine -Line $sl
         if ($iEmail -ge 0 -and $sf.Count -gt $iEmail -and $sf[$iEmail] -ne '') { $supEmails += $sf[$iEmail].ToLower() }
         if ($iPerson -ge 0 -and $sf.Count -gt $iPerson -and $sf[$iPerson] -ne '') { $supPeople += $sf[$iPerson].ToLower() }
+        if ($iSupDomain -ge 0 -and $sf.Count -gt $iSupDomain -and $sf[$iSupDomain] -ne '') { $supDomains += $sf[$iSupDomain].ToLower() }
     }
 }
+$supPeople = @($supPeople | Select-Object -Unique); $supEmails = @($supEmails | Select-Object -Unique); $supDomains = @($supDomains | Select-Object -Unique)
 
 # ---- per-play processing -------------------------------------------------------------------
 $holdPattern = '(?i)gate-?3|do.?not.?contact|no.?send|\bhold\b|\bbench\b'
@@ -207,6 +213,10 @@ foreach ($playFolder in $playIds) {
             $af = Split-CsvLine -Line $al
             if ($af.Count -gt 2 -and $af[0] -eq $accId) { $accountCompany = $af[1]; $accountDomain = $af[2]; break }
         }
+    }
+    if ($accountDomain -ne '' -and $supDomains -contains $accountDomain.ToLower()) {
+        Write-Host "SUPPRESSED account domain: $accountDomain - ZoomInfo not called"
+        continue
     }
 
     $rows = @(); foreach ($ln in ($lines | Select-Object -Skip 1)) { if ($ln.Trim() -ne '') { $rows += ,(Split-CsvLine -Line $ln) } }
@@ -337,7 +347,7 @@ foreach ($playFolder in $playIds) {
         $creditsSpent++
         if ($supEmails -contains $em.ToLower()) {
             $summaryLines += "SUPPRESSED post-enrich (email on suppression list): $($e.name) - email NOT written"
-            $resultLines += (Join-CsvLine -Fields @((New-RunId -DateStamp $stamp), $playFolder, $em, 'suppressed', '', 'zoominfo', $stamp, 'email matched suppression.csv - not imported'))
+            $resultLines += (Join-CsvLine -Fields @((New-RunId -DateStamp $stamp), $playFolder, $em, 'suppressed', '', 'zoominfo', $stamp, 'email matched local suppression - not imported'))
             continue
         }
         # STALE-DOMAIN tripwire (added after the live catch 2026-08-20: ZoomInfo returned a
