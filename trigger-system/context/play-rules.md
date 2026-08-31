@@ -48,4 +48,4 @@ Blocked categories are not softened into a near-equivalent. If no proof survives
 
 ## Output contract
 
-The AI writes a candidate play for deterministic validation. It must include the evidence receipt, why-now, pain statement and grade, chosen capability, committee reasoning, outreach subset, draft subject/body, proof ID or null, conflicts, holds, and omitted claims. The validator, not the model, decides whether a draft payload is eligible for Outlook.
+The AI writes a candidate play for deterministic validation. It must include the evidence receipt, why-now, pain statement and grade, chosen capability, committee reasoning, outreach subset, draft subject/body, proof ID or null, conflicts, holds, and omitted claims. Draft bodies contain a single `{evidence}` slot; the validator renders that sentence from the actual STRIKE receipt. The validator, not the model, decides whether a draft payload is eligible for Outlook.

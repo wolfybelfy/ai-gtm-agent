@@ -38,4 +38,4 @@ Review recipients, subjects, bodies, proof omissions, and hold states. Use `-Exe
 
 ## Recovery
 
-Re-run the same command after a failure. If the input and policy hash is unchanged, completed receipts are reused and draft idempotency keys remain stable. If evidence or policy changes, the pipeline creates a new run identity.
+Re-run the same command after a failure. An identical fully completed run is reused. If a failure happened before the final receipt, deterministic stages rebuild safely; no paid call or Outlook write exists inside the pipeline. Draft idempotency keys remain stable for unchanged inputs. If evidence or policy changes, the pipeline creates a new run identity.

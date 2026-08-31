@@ -16,6 +16,8 @@ The runtime connections are deliberately narrow:
 
 Live web collectors and a live ZoomInfo connector are not enabled in v1. HubSpot, Teams, OneDrive/Graph, Clay, automatic sending, reply monitoring, sequences, and one-pagers are not runtime components. The distilled call and meeting corpus remains local play-writing context, not a runtime integration.
 
+V1 account scope is the United States, United Kingdom, Canada, and UAE. Contact drafts remain limited to verified US-based people with company-domain work email and verified role relevance.
+
 ## First safe run
 
 ```powershell

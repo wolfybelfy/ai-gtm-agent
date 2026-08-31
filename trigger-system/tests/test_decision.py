@@ -62,6 +62,26 @@ class DecisionTests(unittest.TestCase):
             "manual_review",
         )
 
+    def test_stale_role_requires_verified_repost_and_sixty_days_open(self):
+        signal = replace(
+            self.hiring,
+            signal_type="stale_reposted_role",
+            metadata={"days_open": 59, "repost_verified": True},
+        )
+        self.assertEqual(evaluate_signal(signal, AS_OF, self.policy).window_state, "manual_review")
+        valid = replace(signal, metadata={"days_open": 60, "repost_verified": True})
+        self.assertEqual(evaluate_signal(valid, AS_OF, self.policy).window_state, "in_window")
+
+    def test_acquisition_integration_requires_a_closed_transaction(self):
+        announced = replace(
+            self.hiring,
+            signal_type="acquisition_integration",
+            metadata={"transaction_status": "announced"},
+        )
+        self.assertEqual(evaluate_signal(announced, AS_OF, self.policy).window_state, "manual_review")
+        closed = replace(announced, metadata={"transaction_status": "closed"})
+        self.assertEqual(evaluate_signal(closed, AS_OF, self.policy).window_state, "in_window")
+
     def test_two_independent_in_window_signals_strike(self):
         result = decide(self.account, [self.leader, self.hiring], AS_OF, self.policy)
         self.assertEqual(result.verdict, "STRIKE")
@@ -122,6 +142,23 @@ class DecisionTests(unittest.TestCase):
         self.assertEqual(result.verdict, "STRIKE")
         self.assertTrue(result.low_fit_outlier)
         self.assertEqual(result.fit_score, 20)
+
+    def test_market_scope_is_enforced_before_signal_evaluation(self):
+        india = replace(self.account, hq_country="India")
+        malformed = replace(self.hiring, metadata={"open_role_count": "not-a-number"})
+        result = decide(india, [malformed], AS_OF, self.policy)
+        self.assertEqual(result.verdict, "OUT_OF_MARKET")
+        self.assertEqual(result.evaluations, ())
+
+    def test_primary_team_case_does_not_break_play_evidence_binding(self):
+        result = decide(
+            self.account,
+            [replace(self.leader, team=" Marketing "), replace(self.hiring, team="MARKETING")],
+            AS_OF,
+            self.policy,
+        )
+        self.assertEqual(result.verdict, "STRIKE")
+        self.assertEqual(result.primary_team, "marketing")
 
 
 if __name__ == "__main__":

@@ -13,6 +13,21 @@ from .signals import evaluate_signal
 
 
 MULTI_LABEL_SUFFIXES = {"co.uk", "com.au", "co.in", "co.jp", "com.br", "com.mx"}
+MARKET_COUNTRIES = {
+    "canada",
+    "united arab emirates",
+    "uae",
+    "u.a.e.",
+    "united kingdom",
+    "uk",
+    "u.k.",
+    "united states",
+    "united states of america",
+    "us",
+    "usa",
+    "u.s.",
+    "u.s.a.",
+}
 
 
 def _publisher_identity(source_url: str) -> str:
@@ -46,6 +61,18 @@ def decide(
             low_fit_outlier=False,
             evaluations=(),
             reason="account domain is on the suppression baseline",
+        )
+    if account.hq_country.strip().lower() not in MARKET_COUNTRIES:
+        return Decision(
+            account=account,
+            verdict="OUT_OF_MARKET",
+            fit_score=account.fit_score,
+            heat_score=0,
+            independent_signal_count=0,
+            primary_team=None,
+            low_fit_outlier=False,
+            evaluations=(),
+            reason="account headquarters is outside the approved market scope",
         )
 
     evaluations = tuple(evaluate_signal(signal, as_of, policy) for signal in signals)

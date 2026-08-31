@@ -18,8 +18,8 @@ from agent.play import (
 
 AS_OF = date(2026, 8, 31)
 BASE_BODY = (
-    "Your marketing leadership change and three open roles point to a team rebuilding "
-    "plans while execution is still moving. That can create a difficult choice between "
+    "{evidence} "
+    "That can create a difficult choice between "
     "getting the new operating model right and keeping near-term pipeline work on schedule. "
     "{proof} We support B2B teams when that planning and execution gap appears. I may be "
     "off, but is the bigger priority currently team capacity or audience quality?"
@@ -204,6 +204,38 @@ class PlayTests(unittest.TestCase):
         )
         with self.assertRaises(PolicyError):
             build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
+
+    def test_unsupported_outcome_claim_is_rejected(self):
+        unsupported = BASE_BODY.replace(
+            "We support B2B teams when that planning and execution gap appears.",
+            "Our work guarantees delivery and has doubled pipeline for similar clients.",
+        )
+        candidate = replace(
+            self.candidate,
+            committee=(self.candidate.committee[0],),
+            drafts=(replace(self.candidate.drafts[0], body_template=unsupported, proof_id=None),),
+        )
+        with self.assertRaises(PolicyError):
+            build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
+
+    def test_email_requires_validator_owned_evidence_slot(self):
+        candidate = replace(
+            self.candidate,
+            committee=(self.candidate.committee[0],),
+            drafts=(replace(self.candidate.drafts[0], body_template=BASE_BODY.replace("{evidence} ", "")),),
+        )
+        with self.assertRaises(PolicyError):
+            build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
+
+    def test_validator_injects_evidence_from_actual_decision(self):
+        candidate = replace(
+            self.candidate,
+            committee=(self.candidate.committee[0],),
+            drafts=(self.candidate.drafts[0],),
+        )
+        play = build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
+        self.assertNotIn("{evidence}", play.drafts[0].body)
+        self.assertIn("leadership change", play.drafts[0].body.lower())
 
     def test_personal_email_domain_is_held(self):
         contact = replace(self.contacts[0], email="alex@gmail.com")

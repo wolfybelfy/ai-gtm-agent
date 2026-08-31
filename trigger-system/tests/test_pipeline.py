@@ -74,6 +74,20 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(len(plays), 1)
             self.assertTrue(all("no ZoomInfo result" in hold["reason"] for hold in plays[0]["holds"]))
 
+    def test_verification_flags_must_be_real_json_booleans(self):
+        with tempfile.TemporaryDirectory(dir=TEST_TMP) as folder:
+            root = Path(folder)
+            inputs = root / "inputs"
+            output = root / "output"
+            shutil.copytree(FIXTURES, inputs)
+            contact = json.loads((inputs / "contacts.jsonl").read_text(encoding="utf-8").splitlines()[0])
+            contact["current_employer_verified"] = "false"
+            contact["email_verified"] = "false"
+            contact["role_relevance_verified"] = "false"
+            (inputs / "contacts.jsonl").write_text(json.dumps(contact) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "JSON boolean"):
+                run_pipeline(inputs, output, as_of=date(2026, 8, 31))
+
     def test_cli_dry_run_uses_the_same_pipeline(self):
         with tempfile.TemporaryDirectory(dir=TEST_TMP) as folder:
             exit_code = main(

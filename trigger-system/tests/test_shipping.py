@@ -53,6 +53,7 @@ class ShippingContractTests(unittest.TestCase):
         monday = (TRIGGER / "runbooks" / "monday-run.md").read_text(encoding="utf-8")
         self.assertNotIn("zoominfo-enrich.ps1", (setup + monday).lower())
         self.assertIn("not enabled", (setup + monday).lower())
+        self.assertIn("failure happened before the final receipt", monday.lower())
 
 
 if __name__ == "__main__":

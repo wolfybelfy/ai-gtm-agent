@@ -17,6 +17,32 @@ VALID_PAIN_GRADES = {"observed", "corpus_supported_hypothesis", "unknown"}
 SUBJECT_PATTERN = re.compile(r"^[a-z0-9]+(?: [a-z0-9]+){0,2}$")
 MEETING_PATTERNS = ("book a meeting", "schedule a call", "15 minutes", "meet next week")
 SURVEILLANCE_PATTERNS = ("i saw you", "i noticed you", "been tracking", "been monitoring")
+UNSUPPORTED_CLAIM_PATTERNS = (
+    r"\bguarantee(?:d|s)?\b",
+    r"\b(?:double|doubled|triple|tripled|quadruple|quadrupled)\b",
+    r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten) times\b",
+    r"\bsimilar clients?\b",
+    r"\bproven results?\b",
+    r"\breturn on (?:investment|ad spend)\b",
+    r"\broi\b",
+    r"\b(?:generated|delivered|increased|improved|reduced)\b.{0,35}\b(?:pipeline|revenue|leads?|conversion|costs?)\b",
+    r"\b(?:announced|appointed|launched|acquired|reported|raised|expanded)\b",
+)
+EVIDENCE_LABELS = {
+    "new_marketing_leader": "marketing leadership change",
+    "hiring_surge": "marketing hiring activity",
+    "stale_reposted_role": "a persistently open marketing role",
+    "acquisition_integration": "post-acquisition integration",
+    "jd_vendor_language": "specialist vendor language in current hiring",
+    "past_champion_landed": "a past champion joining the team",
+    "closed_lost_cluster": "renewed activity around a prior evaluation",
+    "conference": "an upcoming conference program",
+    "product_launch": "a recent product launch",
+    "regional_expansion": "regional expansion",
+    "analyst_placement": "recent analyst recognition",
+    "rebrand": "a recent rebrand",
+    "funding": "a recent funding event",
+}
 
 
 class PolicyError(ValueError):
@@ -115,6 +141,8 @@ def _validate_body(body: str, truth: dict[str, Any]) -> str:
 
 def _validate_body_template(body: str, truth: dict[str, Any]) -> None:
     """Reject unreviewed quantitative or copied proof before approved injection."""
+    if body.count("{evidence}") != 1:
+        raise PolicyError("email template requires exactly one validator-owned evidence slot")
     if re.search(r"(?<![A-Za-z])\d|[%$]", body):
         raise PolicyError("email template contains a quantitative claim outside approved proof injection")
     lowered_words = re.findall(r"\b[\w'-]+\b", body.lower())
@@ -124,6 +152,18 @@ def _validate_body_template(body: str, truth: dict[str, Any]) -> None:
         claim_windows = {tuple(claim_words[index : index + 5]) for index in range(len(claim_words) - 4)}
         if body_windows & claim_windows:
             raise PolicyError("email template contains proof text outside approved proof injection")
+    for pattern in UNSUPPORTED_CLAIM_PATTERNS:
+        if re.search(pattern, body, flags=re.IGNORECASE):
+            raise PolicyError("email template contains an unsupported claim or company fact")
+
+
+def _evidence_sentence(evidence: tuple[Any, ...], primary_team: str) -> str:
+    labels = list(dict.fromkeys(EVIDENCE_LABELS.get(item.signal_type, item.signal_type.replace("_", " ")) for item in evidence))
+    if len(labels) == 1:
+        context = labels[0]
+    else:
+        context = ", ".join(labels[:-1]) + f" and {labels[-1]}"
+    return f"Recent {context} suggests the {primary_team} team is navigating change."
 
 
 def _contact_hold(contact: Contact, account_domain: str) -> str | None:
@@ -160,7 +200,7 @@ def build_play(
         if item.window_state == "in_window"
         and not item.evidence_only
         and item.signal.confidence == "verified"
-        and item.signal.team == decision.primary_team
+        and item.signal.team.strip().lower() == decision.primary_team
         and normalize_domain(item.signal.account_domain) == normalize_domain(decision.account.domain)
     )
     if set(candidate.evidence_signal_ids) != {item.signal_id for item in evidence}:
@@ -212,7 +252,9 @@ def build_play(
             else:
                 proof_text = str(proof["claim"])
                 accepted_proof_id = str(proof["id"])
-        body = draft.body_template.replace("{proof}", proof_text)
+        body = draft.body_template.replace(
+            "{evidence}", _evidence_sentence(evidence, decision.primary_team or "affected")
+        ).replace("{proof}", proof_text)
         body = _validate_body(body, truth)
         validated.append(
             ValidatedDraft(

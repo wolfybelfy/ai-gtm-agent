@@ -58,6 +58,13 @@ def _json_default(value: Any) -> Any:
     raise TypeError(f"Cannot serialize {type(value).__name__}")
 
 
+def _required_bool(row: dict[str, Any], key: str) -> bool:
+    value = row.get(key)
+    if type(value) is not bool:
+        raise ValueError(f"{key} must be a JSON boolean")
+    return value
+
+
 def _atomic_json(path: Path, value: Any) -> None:
     _atomic_text(path, json.dumps(value, indent=2, default=_json_default) + "\n")
 
@@ -123,7 +130,7 @@ def _candidate_from_dict(row: dict[str, Any]) -> PlayCandidate:
                 functional_labels=tuple(item.get("functional_labels", [])),
                 reason=item["reason"],
                 role_hypothesis=item["role_hypothesis"],
-                selected_for_outreach=bool(item["selected_for_outreach"]),
+                selected_for_outreach=_required_bool(item, "selected_for_outreach"),
             )
             for item in row["committee"]
         ),
@@ -146,10 +153,10 @@ def _contact_from_dict(row: dict[str, Any]) -> Contact:
         title=row["title"],
         company_domain=row["company_domain"],
         work_country=row["work_country"],
-        current_employer_verified=bool(row["current_employer_verified"]),
+        current_employer_verified=_required_bool(row, "current_employer_verified"),
         email=row.get("email", ""),
-        email_verified=bool(row.get("email_verified", False)),
-        role_relevance_verified=bool(row.get("role_relevance_verified", False)),
+        email_verified=_required_bool(row, "email_verified"),
+        role_relevance_verified=_required_bool(row, "role_relevance_verified"),
     )
 
 
