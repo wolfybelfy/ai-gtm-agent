@@ -63,7 +63,6 @@ class CommitteeMember:
 @dataclass(frozen=True)
 class CandidateDraft:
     contact_id: str
-    subject: str
     template_id: str
     proof_id: str | None = None
 
@@ -219,12 +218,15 @@ def build_play(
         if draft is None:
             holds.append(Hold(member.contact_id, "selected contact has no candidate email"))
             continue
-        _validate_subject(draft.subject)
         template = templates.get(draft.template_id)
         if template is None:
             raise PolicyError(f"unknown email template: {draft.template_id}")
         if not set(template.get("signal_types", [])) & {item.signal_type for item in evidence}:
             raise PolicyError("email template does not match the STRIKE evidence")
+        if candidate.capability_id not in set(template.get("capability_ids", [])):
+            raise PolicyError("capability does not match the selected email template")
+        subject = str(template["subject"])
+        _validate_subject(subject)
         proof = eligible_proof(truth, draft.proof_id, tuple(item.signal_type for item in evidence), as_of)
         proof_text = ""
         accepted_proof_id = None
@@ -250,7 +252,7 @@ def build_play(
             ValidatedDraft(
                 contact_id=contact.contact_id,
                 recipient=contact.email.strip(),
-                subject=draft.subject.strip(),
+                subject=subject.strip(),
                 body=body,
                 proof_id=accepted_proof_id,
             )

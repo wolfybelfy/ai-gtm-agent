@@ -137,7 +137,6 @@ def _candidate_from_dict(row: dict[str, Any]) -> PlayCandidate:
         drafts=tuple(
             CandidateDraft(
                 contact_id=item["contact_id"],
-                subject=item["subject"],
                 template_id=item["template_id"],
                 proof_id=item.get("proof_id"),
             )

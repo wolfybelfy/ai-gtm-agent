@@ -34,7 +34,7 @@ class ProviderTests(unittest.TestCase):
             "corpus_supported_hypothesis",
             "gtm_strategy",
             (CommitteeMember("c1", ("champion",), "Owns demand.", "VP Demand Generation", True),),
-            (CandidateDraft("c1", "planning gap", "operating_change"),),
+            (CandidateDraft("c1", "operating_change"),),
         )
         contacts = [Contact("c1", "Alex Morgan", "VP Demand", "acme.example", "US", True, "alex@acme.example", True, True)]
         decision = self._strike()

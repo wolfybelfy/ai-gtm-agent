@@ -104,13 +104,11 @@ class PlayTests(unittest.TestCase):
             drafts=(
                 CandidateDraft(
                     contact_id="us-champion",
-                    subject="planning gap",
                     template_id="operating_change",
                     proof_id="aws_event_program",
                 ),
                 CandidateDraft(
                     contact_id="uk-influencer",
-                    subject="planning gap",
                     template_id="operating_change",
                     proof_id=None,
                 ),
@@ -192,8 +190,14 @@ class PlayTests(unittest.TestCase):
         with self.assertRaises(PolicyError):
             build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
 
-    def test_draft_schema_has_no_free_text_body_field(self):
+    def test_draft_schema_has_no_free_text_body_or_subject_field(self):
         self.assertNotIn("body_template", CandidateDraft.__dataclass_fields__)
+        self.assertNotIn("subject", CandidateDraft.__dataclass_fields__)
+
+    def test_template_rejects_an_unrelated_capability(self):
+        candidate = replace(self.candidate, capability_id="channel_gtm")
+        with self.assertRaisesRegex(PolicyError, "capability"):
+            build_play(candidate, self.contacts, self.truth, AS_OF, self.decision)
 
     def test_validator_injects_evidence_from_actual_decision(self):
         candidate = replace(
