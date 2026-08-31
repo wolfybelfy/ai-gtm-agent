@@ -1,4 +1,5 @@
 import unittest
+from copy import deepcopy
 from dataclasses import replace
 from datetime import date
 
@@ -17,13 +18,6 @@ from agent.play import (
 
 
 AS_OF = date(2026, 8, 31)
-BASE_BODY = (
-    "{evidence} "
-    "That can create a difficult choice between "
-    "getting the new operating model right and keeping near-term pipeline work on schedule. "
-    "{proof} We support B2B teams when that planning and execution gap appears. I may be "
-    "off, but is the bigger priority currently team capacity or audience quality?"
-)
 
 
 class PlayTests(unittest.TestCase):
@@ -111,13 +105,13 @@ class PlayTests(unittest.TestCase):
                 CandidateDraft(
                     contact_id="us-champion",
                     subject="planning gap",
-                    body_template=BASE_BODY,
+                    template_id="operating_change",
                     proof_id="aws_event_program",
                 ),
                 CandidateDraft(
                     contact_id="uk-influencer",
                     subject="planning gap",
-                    body_template=BASE_BODY,
+                    template_id="operating_change",
                     proof_id=None,
                 ),
             ),
@@ -170,13 +164,10 @@ class PlayTests(unittest.TestCase):
         self.assertTrue(all("unknown" in hold.reason for hold in play.holds))
 
     def test_blocked_phrase_rejects_candidate(self):
-        bad_draft = replace(
-            self.candidate.drafts[0],
-            body_template=BASE_BODY.replace("We support", "Our platform can support"),
-        )
-        candidate = replace(self.candidate, drafts=(bad_draft,))
+        truth = deepcopy(self.truth)
+        truth["capabilities"][0]["email_line"] = "Our platform can support this work."
         with self.assertRaises(PolicyError):
-            build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
+            build_play(self.candidate, [self.contacts[0]], truth, AS_OF, self.decision)
 
     def test_non_strike_candidate_is_rejected(self):
         with self.assertRaises(PolicyError):
@@ -192,40 +183,17 @@ class PlayTests(unittest.TestCase):
                 self.decision,
             )
 
-    def test_stale_proof_cannot_be_pasted_directly_into_body(self):
-        copied = BASE_BODY.replace(
-            "{proof}",
-            "A published technical-event program reported three times live attendance, more than 250 registrations.",
-        )
+    def test_unknown_email_template_is_rejected(self):
         candidate = replace(
             self.candidate,
             committee=(self.candidate.committee[0],),
-            drafts=(replace(self.candidate.drafts[0], body_template=copied, proof_id=None),),
+            drafts=(replace(self.candidate.drafts[0], template_id="unregistered_claim_copy"),),
         )
         with self.assertRaises(PolicyError):
             build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
 
-    def test_unsupported_outcome_claim_is_rejected(self):
-        unsupported = BASE_BODY.replace(
-            "We support B2B teams when that planning and execution gap appears.",
-            "Our work guarantees delivery and has doubled pipeline for similar clients.",
-        )
-        candidate = replace(
-            self.candidate,
-            committee=(self.candidate.committee[0],),
-            drafts=(replace(self.candidate.drafts[0], body_template=unsupported, proof_id=None),),
-        )
-        with self.assertRaises(PolicyError):
-            build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
-
-    def test_email_requires_validator_owned_evidence_slot(self):
-        candidate = replace(
-            self.candidate,
-            committee=(self.candidate.committee[0],),
-            drafts=(replace(self.candidate.drafts[0], body_template=BASE_BODY.replace("{evidence} ", "")),),
-        )
-        with self.assertRaises(PolicyError):
-            build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
+    def test_draft_schema_has_no_free_text_body_field(self):
+        self.assertNotIn("body_template", CandidateDraft.__dataclass_fields__)
 
     def test_validator_injects_evidence_from_actual_decision(self):
         candidate = replace(
@@ -234,8 +202,26 @@ class PlayTests(unittest.TestCase):
             drafts=(self.candidate.drafts[0],),
         )
         play = build_play(candidate, [self.contacts[0]], self.truth, AS_OF, self.decision)
-        self.assertNotIn("{evidence}", play.drafts[0].body)
         self.assertIn("leadership change", play.drafts[0].body.lower())
+        self.assertIn("planning and execution", play.drafts[0].body.lower())
+
+    def test_validator_never_injects_raw_team_text(self):
+        unsafe_team = "marketing team guarantees delivery"
+        decision = replace(
+            self.decision,
+            primary_team=unsafe_team,
+            evaluations=tuple(
+                replace(item, signal=replace(item.signal, team=unsafe_team))
+                for item in self.decision.evaluations
+            ),
+        )
+        candidate = replace(
+            self.candidate,
+            committee=(self.candidate.committee[0],),
+            drafts=(self.candidate.drafts[0],),
+        )
+        play = build_play(candidate, [self.contacts[0]], self.truth, AS_OF, decision)
+        self.assertNotIn("guarantees delivery", play.drafts[0].body.lower())
 
     def test_personal_email_domain_is_held(self):
         contact = replace(self.contacts[0], email="alex@gmail.com")

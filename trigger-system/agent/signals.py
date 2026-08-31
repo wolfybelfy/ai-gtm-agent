@@ -50,13 +50,19 @@ def evaluate_signal(
         else:
             state = "out_of_window"
             reason = "signal date is outside the configured window"
-    elif signal.signal_type == "stale_reposted_role" and (
-        type(signal.metadata.get("days_open")) is not int
-        or signal.metadata["days_open"] < int(rule["minimum_days_open"])
-        or (bool(rule["requires_repost_verified"]) and signal.metadata.get("repost_verified") is not True)
-    ):
-        state = "manual_review"
-        reason = "stale role requires 60 days open and a verified repost"
+    elif signal.signal_type == "stale_reposted_role":
+        days_open = signal.metadata.get("days_open")
+        stale_path = type(days_open) is int and days_open >= int(rule["minimum_days_open"])
+        repost_path = signal.metadata.get("repost_verified") is True
+        if not (stale_path or repost_path):
+            state = "manual_review"
+            reason = "role requires either 60 days open or a verified recent repost"
+        elif int(rule["min_age_days"]) <= age_days <= int(rule["max_age_days"]):
+            state = "in_window"
+            reason = "signal date is inside the configured window"
+        else:
+            state = "out_of_window"
+            reason = "signal date is outside the configured window"
     elif signal.signal_type == "acquisition_integration" and str(
         signal.metadata.get("transaction_status", "")
     ).strip().lower() != str(rule["required_transaction_status"]).strip().lower():

@@ -138,7 +138,7 @@ def _candidate_from_dict(row: dict[str, Any]) -> PlayCandidate:
             CandidateDraft(
                 contact_id=item["contact_id"],
                 subject=item["subject"],
-                body_template=item["body_template"],
+                template_id=item["template_id"],
                 proof_id=item.get("proof_id"),
             )
             for item in row["drafts"]

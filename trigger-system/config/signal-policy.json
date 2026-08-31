@@ -5,7 +5,7 @@
   "signals": {
     "new_marketing_leader": {"tier": "A", "weight": 30, "min_age_days": 30, "max_age_days": 90},
     "hiring_surge": {"tier": "A", "weight": 28, "min_age_days": 0, "max_age_days": 30, "minimum_open_roles": 3},
-    "stale_reposted_role": {"tier": "A", "weight": 24, "min_age_days": 0, "max_age_days": 30, "minimum_days_open": 60, "requires_repost_verified": true},
+    "stale_reposted_role": {"tier": "A", "weight": 24, "min_age_days": 0, "max_age_days": 30, "minimum_days_open": 60, "qualification": "minimum_days_open_or_verified_repost"},
     "acquisition_integration": {"tier": "A", "weight": 26, "min_age_days": 0, "max_age_days": 274, "required_transaction_status": "closed"},
     "jd_vendor_language": {"tier": "A", "weight": 24, "min_age_days": 0, "max_age_days": 60},
     "past_champion_landed": {"tier": "A", "weight": 25, "min_age_days": 30, "max_age_days": 120},

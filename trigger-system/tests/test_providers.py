@@ -14,14 +14,6 @@ REPO = Path(__file__).resolve().parents[2]
 OUTLOOK_SCRIPT = REPO / "trigger-system" / "scripts" / "publish-outlook-drafts.ps1"
 ZOOMINFO_SCRIPT = REPO / "trigger-system" / "scripts" / "zoominfo-enrich.ps1"
 AS_OF = date(2026, 8, 31)
-BODY = (
-    "{evidence} That can create a difficult choice between "
-    "getting the operating model right and keeping near-term pipeline work on schedule. "
-    "{proof} We support B2B teams when that gap appears. I may be off, but is the bigger "
-    "priority currently team capacity or audience quality?"
-)
-
-
 class ProviderTests(unittest.TestCase):
     def _strike(self):
         account = Account("acme", "Acme", "acme.example", "United States", 70)
@@ -42,7 +34,7 @@ class ProviderTests(unittest.TestCase):
             "corpus_supported_hypothesis",
             "gtm_strategy",
             (CommitteeMember("c1", ("champion",), "Owns demand.", "VP Demand Generation", True),),
-            (CandidateDraft("c1", "planning gap", BODY),),
+            (CandidateDraft("c1", "planning gap", "operating_change"),),
         )
         contacts = [Contact("c1", "Alex Morgan", "VP Demand", "acme.example", "US", True, "alex@acme.example", True, True)]
         decision = self._strike()

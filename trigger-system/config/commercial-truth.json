@@ -7,12 +7,32 @@
     "blocked": ["brand to demand", "platform", "database", "list provider"]
   },
   "capabilities": [
-    {"id": "gtm_strategy", "name": "GTM Strategy and Consulting"},
-    {"id": "revenue_ops", "name": "Marketing and Revenue Operations"},
-    {"id": "brand_content", "name": "Brand and Content"},
-    {"id": "demand_generation", "name": "Demand Generation"},
-    {"id": "abm", "name": "Account-Based Marketing"},
-    {"id": "channel_gtm", "name": "Channel and Partner GTM"}
+    {"id": "gtm_strategy", "name": "GTM Strategy and Consulting", "email_line": "We help B2B teams connect planning and execution when priorities are moving."},
+    {"id": "revenue_ops", "name": "Marketing and Revenue Operations", "email_line": "We help B2B teams keep marketing operations aligned while priorities are moving."},
+    {"id": "brand_content", "name": "Brand and Content", "email_line": "We help B2B teams connect brand and content work to the commercial plan."},
+    {"id": "demand_generation", "name": "Demand Generation", "email_line": "We help B2B teams keep demand programs moving through periods of change."},
+    {"id": "abm", "name": "Account-Based Marketing", "email_line": "We help B2B teams focus account programs around the buyers who matter."},
+    {"id": "channel_gtm", "name": "Channel and Partner GTM", "email_line": "We help B2B teams align partner programs with the wider go-to-market plan."}
+  ],
+  "email_templates": [
+    {
+      "id": "operating_change",
+      "signal_types": ["new_marketing_leader", "hiring_surge", "stale_reposted_role", "jd_vendor_language", "past_champion_landed", "closed_lost_cluster", "capability_gap", "martech_replatform", "executive_rebuild_content"],
+      "implication": "That can create a difficult choice between shaping the new operating model and keeping near-term work on schedule.",
+      "question": "I may be off, but is the bigger priority currently team capacity or audience quality?"
+    },
+    {
+      "id": "market_moment",
+      "signal_types": ["conference", "product_launch", "regional_expansion", "analyst_placement", "rebrand", "funding", "review_platform_intent"],
+      "implication": "That can put extra pressure on the team to turn a visible market moment into coordinated execution.",
+      "question": "I may be off, but is the harder part currently audience focus or cross-team execution?"
+    },
+    {
+      "id": "integration_change",
+      "signal_types": ["acquisition_integration"],
+      "implication": "That can make it difficult to align the new operating picture while current programs still need to perform.",
+      "question": "I may be off, but is the immediate pressure more about integration or maintaining market momentum?"
+    }
   ],
   "blocked_claim_categories": ["audience_size", "unsupported_privacy_or_gdpr", "delivery_guarantee", "comparative_benchmark", "unapproved_client_reference", "internal_pricing"],
   "blocked_phrases": ["100 million", "30k accounts", "500 leads", "this is not a sales call", "I don't have a list"],

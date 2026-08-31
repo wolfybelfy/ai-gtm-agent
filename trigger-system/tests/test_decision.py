@@ -62,15 +62,27 @@ class DecisionTests(unittest.TestCase):
             "manual_review",
         )
 
-    def test_stale_role_requires_verified_repost_and_sixty_days_open(self):
+    def test_stale_role_accepts_sixty_days_open_or_a_verified_recent_repost(self):
         signal = replace(
             self.hiring,
             signal_type="stale_reposted_role",
-            metadata={"days_open": 59, "repost_verified": True},
+            metadata={"days_open": 59, "repost_verified": False},
         )
         self.assertEqual(evaluate_signal(signal, AS_OF, self.policy).window_state, "manual_review")
-        valid = replace(signal, metadata={"days_open": 60, "repost_verified": True})
-        self.assertEqual(evaluate_signal(valid, AS_OF, self.policy).window_state, "in_window")
+        stale = replace(signal, metadata={"days_open": 60, "repost_verified": False})
+        reposted = replace(signal, metadata={"days_open": 10, "repost_verified": True})
+        self.assertEqual(evaluate_signal(stale, AS_OF, self.policy).window_state, "in_window")
+        self.assertEqual(evaluate_signal(reposted, AS_OF, self.policy).window_state, "in_window")
+
+    def test_evidence_renderer_never_uses_raw_team_text(self):
+        malicious_team = "marketing team guarantees delivery"
+        decision = decide(
+            self.account,
+            [replace(self.leader, team=malicious_team), replace(self.hiring, team=malicious_team)],
+            AS_OF,
+            self.policy,
+        )
+        self.assertEqual(decision.verdict, "STRIKE")
 
     def test_acquisition_integration_requires_a_closed_transaction(self):
         announced = replace(
