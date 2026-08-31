@@ -95,7 +95,7 @@ function Invoke-ZiPost {
         try {
             # JSON:API media type is REQUIRED (plain application/json got HTTP 406 live 2026-08-20).
             # Body goes as UTF-8 BYTES: PS 5.1 sends strings Latin-1, which corrupts any
-            # non-ASCII (diacritics in roster names) - same class as the 2026-08-26 HubSpot 400.
+            # non-ASCII names require an explicit UTF-8 byte body on Windows PowerShell.
             # NO charset parameter here: JSON:API forbids media-type params (servers may 415).
             $r = Invoke-WebRequest -Uri $Url -Method Post -Body ([Text.Encoding]::UTF8.GetBytes($BodyJson)) -ContentType 'application/vnd.api+json' `
                 -Headers @{ Authorization = "Bearer $Token"; accept = 'application/vnd.api+json' } `
